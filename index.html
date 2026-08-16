@@ -56,7 +56,8 @@
     color: #333;
   }
   .chip.active { background: #eaf1ff; border-color: #3a7bd5; color: #1a4d99; font-weight: 600; }
-  .organ-text { margin-top: 10px; resize: none; overflow-y: hidden; }
+  .organ-text-label { font-size: 11px; font-weight: 600; color: #8a6d1a; margin-top: 10px; margin-bottom: 3px; }
+  .organ-text { margin-top: 0; resize: none; overflow-y: hidden; background: #fffce6; border-color: #e8d9a0; }
   .gi-category { margin-bottom: 10px; }
   .gi-category-btn {
     width: 100%;
@@ -93,8 +94,27 @@
     border: 1px solid #ccc;
     background: #f9f9f9;
     cursor: pointer;
-    margin-left: auto;
+    margin-left: 8px;
   }
+  .organ-collapse-btn {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    color: #555;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .organ-collapse-btn:hover { background: #eee; }
+  .organ-collapse-btn.collapsed { transform: rotate(-90deg); }
   .organ-header { display: flex; align-items: center; }
   .print-view { display: none; }
 
@@ -204,7 +224,11 @@
       <h2 style="margin:0; font-size:16px;">Load report from cloud</h2>
       <button id="cloudModalClose" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
     </div>
-    <input type="text" id="cloudSearchInput" placeholder="Search by case number" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box; margin-bottom:10px;">
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:10px;">
+      <input type="text" id="cloudSearchCase" placeholder="Case number" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
+      <input type="text" id="cloudSearchPatient" placeholder="Patient name" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
+      <input type="text" id="cloudSearchVet" placeholder="Scanning veterinarian" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
+    </div>
     <div id="cloudList" style="font-size:13px; color:#777;">Loading...</div>
   </div>
 </div>
@@ -232,6 +256,7 @@
     <h2>Patient information</h2>
     <div class="grid">
       <div class="field"><label>Case number</label><input type="text" id="f_case"></div>
+      <div class="field"><label>Scanning veterinarian</label><input type="text" id="f_vet"></div>
       <div class="field"><label>Client name</label><input type="text" id="f_client"></div>
       <div class="field"><label>Patient name</label><input type="text" id="f_patient"></div>
       <div class="field"><label>Species</label>
@@ -1176,6 +1201,8 @@ ORGANS.forEach(function(o){
 var organIncluded = {};
 ORGANS.forEach(function(o){ organIncluded[o.id] = true; });
 
+var organCollapsed = {};
+
 var organToggleEl = document.getElementById('organToggle');
 function renderOrganToggle(){
   organToggleEl.innerHTML = '';
@@ -1730,6 +1757,11 @@ function renderGISection(o, s, section){
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
 
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
+
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 6;
@@ -1806,6 +1838,11 @@ function renderBladderSection(o, s, section){
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
+
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
 
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
@@ -1904,6 +1941,11 @@ function renderLymphSection(o, s, section){
     section.appendChild(dtField);
   }
 
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
+
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
@@ -1999,6 +2041,11 @@ function renderVasculatureSection(o, s, section){
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
+
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
 
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
@@ -2148,6 +2195,11 @@ function renderGenitalSection(o, s, section){
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
 
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
+
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 4;
@@ -2211,6 +2263,11 @@ function renderGallbladderSection(o, s, section){
   chipRow('Content', GALLBLADDER_CONTENT_OPTS, function(){ return s.content; }, function(v){ state[o.id].content = v; });
   chipRow('Evidence of obstruction', GALLBLADDER_OBSTRUCTION_OPTS, function(){ return s.obstruction; }, function(v){ state[o.id].obstruction = v; });
   textField('Additional notes', 'e.g. pericholecystic fluid noted', function(){ return s.detail; }, function(v){ state[o.id].detail = v; });
+
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
 
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
@@ -2310,6 +2367,11 @@ function renderBiliarySection(o, s, section){
       textField('Additional notes', 'e.g. thickened, irregular contour', function(){ return s.mdpDetail; }, function(v){ state[o.id].mdpDetail = v; });
     }
   }
+
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
 
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
@@ -2438,6 +2500,11 @@ function renderUretersSection(o, s, section){
     });
   }
 
+  var textAreaLabel = document.createElement('div');
+  textAreaLabel.className = 'organ-text-label';
+  textAreaLabel.textContent = 'Report text (edit as needed)';
+  section.appendChild(textAreaLabel);
+
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
@@ -2502,54 +2569,67 @@ function renderOrgans(){
       }
       renderOrgans();
     });
+    var collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'organ-collapse-btn' + (organCollapsed[o.id] ? ' collapsed' : '');
+    collapseBtn.textContent = '▾';
+    collapseBtn.setAttribute('aria-label', organCollapsed[o.id] ? 'Expand' : 'Collapse');
+    collapseBtn.addEventListener('click', function(){
+      organCollapsed[o.id] = !organCollapsed[o.id];
+      renderOrgans();
+    });
+    header.appendChild(collapseBtn);
     header.appendChild(normalBtn);
     section.appendChild(header);
 
+    var body = document.createElement('div');
+    body.className = 'organ-body';
+
     if (o.custom === 'bladder') {
-      renderBladderSection(o, s, section);
-      organsEl.appendChild(section);
+      renderBladderSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'gi') {
-      renderGISection(o, s, section);
-      organsEl.appendChild(section);
+      renderGISection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'lymph') {
-      renderLymphSection(o, s, section);
-      organsEl.appendChild(section);
+      renderLymphSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'vasculature') {
-      renderVasculatureSection(o, s, section);
-      organsEl.appendChild(section);
+      renderVasculatureSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'genital') {
-      renderGenitalSection(o, s, section);
-      organsEl.appendChild(section);
+      renderGenitalSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'gallbladder') {
-      renderGallbladderSection(o, s, section);
-      organsEl.appendChild(section);
+      renderGallbladderSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'biliary') {
-      renderBiliarySection(o, s, section);
-      organsEl.appendChild(section);
+      renderBiliarySection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
     if (o.custom === 'ureters') {
-      renderUretersSection(o, s, section);
-      organsEl.appendChild(section);
+      renderUretersSection(o, s, body);
+      finishOrganSection(o, section, body);
       return;
     }
 
@@ -2574,7 +2654,7 @@ function renderOrgans(){
         sideChipWrap.appendChild(chip);
       });
       sideRow.appendChild(sideChipWrap);
-      section.appendChild(sideRow);
+      body.appendChild(sideRow);
     }
 
     var activeState = o.sides ? s[s.activeSide] : s;
@@ -2602,7 +2682,7 @@ function renderOrgans(){
         chipWrap.appendChild(chip);
       });
       row.appendChild(chipWrap);
-      section.appendChild(row);
+      body.appendChild(row);
 
       if (attrKey === 'size' && o.sizeDetailField && o.sizeDetailField.showWhen.indexOf(activeState.size) !== -1) {
         var sdf = o.sizeDetailField;
@@ -2625,7 +2705,7 @@ function renderOrgans(){
           autoResize(textArea);
         });
         sdField.appendChild(sdInput);
-        section.appendChild(sdField);
+        body.appendChild(sdField);
       }
     });
 
@@ -2646,7 +2726,7 @@ function renderOrgans(){
         autoResize(textArea);
       });
       lesionField.appendChild(lesionInput);
-      section.appendChild(lesionField);
+      body.appendChild(lesionField);
     }
 
     var measurementsDefs = getMeasurementsFor(o);
@@ -2673,7 +2753,7 @@ function renderOrgans(){
         mField.appendChild(mInput);
         measGrid.appendChild(mField);
       });
-      section.appendChild(measGrid);
+      body.appendChild(measGrid);
     }
 
     var extraField = document.createElement('div');
@@ -2691,7 +2771,12 @@ function renderOrgans(){
       autoResize(textArea);
     });
     extraField.appendChild(extraInput);
-    section.appendChild(extraField);
+    body.appendChild(extraField);
+
+    var textAreaLabel = document.createElement('div');
+    textAreaLabel.className = 'organ-text-label';
+    textAreaLabel.textContent = 'Report text (edit as needed)';
+    body.appendChild(textAreaLabel);
 
     var textArea = document.createElement('textarea');
     textArea.className = 'organ-text';
@@ -2702,12 +2787,25 @@ function renderOrgans(){
       s.customText = textArea.value;
       autoResize(textArea);
     });
-    section.appendChild(textArea);
+    body.appendChild(textArea);
 
-    organsEl.appendChild(section);
+    finishOrganSection(o, section, body);
   });
 
   document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
+}
+
+function finishOrganSection(o, section, body){
+  section.appendChild(body);
+  var kids = body.children;
+  if (kids.length >= 2) {
+    var textArea = kids[kids.length - 1];
+    var textAreaLabel = kids[kids.length - 2];
+    section.appendChild(textAreaLabel);
+    section.appendChild(textArea);
+  }
+  body.style.display = organCollapsed[o.id] ? 'none' : '';
+  organsEl.appendChild(section);
 }
 
 document.getElementById('allNormalBtn').addEventListener('click', function(){
@@ -2853,6 +2951,7 @@ document.getElementById('copyBtn').addEventListener('click', function(){
 function getPatientFields(){
   return {
     case_number: document.getElementById('f_case').value,
+    scanning_vet: document.getElementById('f_vet').value,
     client_name: document.getElementById('f_client').value,
     patient_name: document.getElementById('f_patient').value,
     species: document.getElementById('f_species').value,
@@ -2873,6 +2972,7 @@ document.getElementById('saveCloudBtn').addEventListener('click', function(){
 
   var payload = {
     case_number: patientFields.case_number,
+    scanning_vet: patientFields.scanning_vet,
     client_name: patientFields.client_name,
     patient_name: patientFields.patient_name,
     species: patientFields.species,
@@ -2904,6 +3004,7 @@ function loadReportIntoForm(report){
 
   if (data.patientFields) {
     document.getElementById('f_case').value = data.patientFields.case_number || '';
+    document.getElementById('f_vet').value = data.patientFields.scanning_vet || '';
     document.getElementById('f_client').value = data.patientFields.client_name || '';
     document.getElementById('f_patient').value = data.patientFields.patient_name || '';
     document.getElementById('f_species').value = data.patientFields.species || '';
@@ -2944,8 +3045,9 @@ function renderCloudList(reports){
     row.className = 'cloud-row';
     var label = document.createElement('div');
     var caseStr = r.case_number ? ('Case# ' + r.case_number + ' — ') : '';
+    var vetStr = r.scanning_vet ? (' — Scanned by ' + r.scanning_vet) : '';
     var examDateStr = r.exam_date ? r.exam_date : (r.created_at ? new Date(r.created_at).toLocaleDateString() : '');
-    label.textContent = caseStr + (r.patient_name || '(no patient name)') + ' — ' + (r.client_name || '') + ' (' + examDateStr + ')';
+    label.textContent = caseStr + (r.patient_name || '(no patient name)') + ' — ' + (r.client_name || '') + ' (' + examDateStr + ')' + vetStr;
     row.appendChild(label);
     var loadBtn = document.createElement('button');
     loadBtn.textContent = 'Load';
@@ -2958,12 +3060,17 @@ function renderCloudList(reports){
   });
 }
 
-function fetchCloudReports(searchTerm){
+function fetchCloudReports(){
   document.getElementById('cloudList').textContent = 'Loading...';
+  var caseTerm = document.getElementById('cloudSearchCase').value.trim();
+  var patientTerm = document.getElementById('cloudSearchPatient').value.trim();
+  var vetTerm = document.getElementById('cloudSearchVet').value.trim();
+
   var query = sbClient.from('reports').select('*');
-  if (searchTerm && searchTerm.trim()) {
-    query = query.ilike('case_number', '%' + searchTerm.trim() + '%');
-  }
+  if (caseTerm) query = query.ilike('case_number', '%' + caseTerm + '%');
+  if (patientTerm) query = query.ilike('patient_name', '%' + patientTerm + '%');
+  if (vetTerm) query = query.ilike('scanning_vet', '%' + vetTerm + '%');
+
   query.order('exam_date', { ascending: false }).limit(50).then(function(result){
     if (result.error) {
       document.getElementById('cloudList').textContent = 'Failed to load: ' + result.error.message;
@@ -2976,12 +3083,16 @@ function fetchCloudReports(searchTerm){
 document.getElementById('loadCloudBtn').addEventListener('click', function(){
   var modal = document.getElementById('cloudModal');
   modal.classList.add('open');
-  document.getElementById('cloudSearchInput').value = '';
-  fetchCloudReports('');
+  document.getElementById('cloudSearchCase').value = '';
+  document.getElementById('cloudSearchPatient').value = '';
+  document.getElementById('cloudSearchVet').value = '';
+  fetchCloudReports();
 });
 
-document.getElementById('cloudSearchInput').addEventListener('input', function(){
-  fetchCloudReports(document.getElementById('cloudSearchInput').value);
+['cloudSearchCase', 'cloudSearchPatient', 'cloudSearchVet'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', function(){
+    fetchCloudReports();
+  });
 });
 
 document.getElementById('cloudModalClose').addEventListener('click', function(){
