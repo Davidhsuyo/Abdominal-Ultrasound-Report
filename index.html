@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abdominal Ultrasound Report</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #f4f4f2;
+    color: #1a1a1a;
+    margin: 0;
+    padding: 24px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .subtitle { color: #666; font-size: 13px; margin: 0 0 20px; }
+  .card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  label { display: block; font-size: 12px; color: #666; margin-bottom: 3px; }
+  input[type=text], input[type=date], textarea, select {
+    width: 100%;
+    font-size: 14px;
+    padding: 7px 9px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; }
+  .field { margin-bottom: 10px; }
+  .attr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .attr-label { font-size: 12px; color: #666; min-width: 100px; }
+  .chip-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px;
+    padding: 5px 11px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background: #fff;
+    cursor: pointer;
+    color: #333;
+  }
+  .chip.active { background: #eaf1ff; border-color: #3a7bd5; color: #1a4d99; font-weight: 600; }
+  .organ-text { margin-top: 10px; resize: none; overflow-y: hidden; }
+  .gi-category { margin-bottom: 10px; }
+  .gi-category-btn {
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f7f7f6;
+    cursor: pointer;
+  }
+  .gi-segment { margin: 8px 0 8px 14px; padding: 8px 0 8px 12px; border-left: 2px solid #eee; }
+  .gi-segment-name { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 6px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  button.action {
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    cursor: pointer;
+  }
+  button.action.secondary {
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #ccc;
+  }
+  .organ-normal-btn {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .organ-header { display: flex; align-items: center; }
+  .print-view { display: none; }
+
+  #loginScreen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .login-box {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 28px 26px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .login-box input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  #cloudModal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  #cloudModal.open { display: flex; }
+  .cloud-modal-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    width: 520px;
+    max-height: 70vh;
+    overflow-y: auto;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.15);
+  }
+  .cloud-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+  .cloud-row button {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .no-print { display: none !important; }
+    .card { border: none; padding: 0; margin: 0; }
+    .print-view { display: block; }
+    .print-view h1 { font-size: 18px; }
+    .print-organ { margin-bottom: 10px; }
+    .print-organ .name { font-weight: 600; font-size: 13px; }
+    .print-organ .text { font-size: 13px; margin: 2px 0 0; white-space: pre-line; }
+    .print-header-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; font-size: 13px; margin-bottom: 14px; }
+    .print-section-title { font-size: 14px; font-weight: 600; margin: 18px 0 6px; border-bottom: 1px solid #999; padding-bottom: 3px; }
+    .screen-only-in-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="no-print">
+  <div class="login-box">
+    <h1 style="font-size:18px; margin:0 0 14px;">Abdominal Ultrasound Report</h1>
+    <p style="margin:0 0 14px; color:#555; font-size:14px;">Sign in to continue</p>
+    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+    <button class="action" id="loginSubmit" style="width:100%; margin-top:4px;">Sign in</button>
+    <p id="loginError" style="color:#c0392b; font-size:13px; margin:10px 0 0; display:none;">Sign in failed, please check your email/password.</p>
+  </div>
+</div>
+
+<div id="cloudModal" class="no-print">
+  <div class="cloud-modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h2 style="margin:0; font-size:16px;">Load report from cloud</h2>
+      <button id="cloudModalClose" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
+    </div>
+    <input type="text" id="cloudSearchInput" placeholder="Search by case number" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box; margin-bottom:10px;">
+    <div id="cloudList" style="font-size:13px; color:#777;">Loading...</div>
+  </div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+<div class="wrap no-print">
+  <div class="topbar">
+    <span id="userEmailLabel"></span>
+    <button class="action secondary" id="signOutBtn" style="padding:4px 10px; font-size:12px;">Sign out</button>
+  </div>
+  <h1>Abdominal Ultrasound Report</h1>
+  <p class="subtitle">Click the buttons in each organ section to auto-generate a description. Edit the text freely afterward. Use "Preview &amp; print" when finished.</p>
+
+  <div class="toolbar">
+    <button class="action" id="printBtn">Preview &amp; print</button>
+    <button class="action secondary" id="copyBtn">Copy report text</button>
+    <button class="action secondary" id="saveCloudBtn">Save to cloud</button>
+    <button class="action secondary" id="loadCloudBtn">Load from cloud</button>
+    <button class="action secondary" id="allNormalBtn">Set all organs to normal</button>
+    <button class="action secondary" id="resetBtn">Clear all</button>
+  </div>
+
+  <div class="card">
+    <h2>Patient information</h2>
+    <div class="grid">
+      <div class="field"><label>Case number</label><input type="text" id="f_case"></div>
+      <div class="field"><label>Client name</label><input type="text" id="f_client"></div>
+      <div class="field"><label>Patient name</label><input type="text" id="f_patient"></div>
+      <div class="field"><label>Species</label>
+        <select id="f_species">
+          <option value="">Select species</option>
+          <option value="Canine">Canine</option>
+          <option value="Feline">Feline</option>
+        </select>
+      </div>
+      <div class="field"><label>Breed</label><input type="text" id="f_breed"></div>
+      <div class="field"><label>Sex</label>
+        <select id="f_sex">
+          <option value="">Select sex</option>
+          <option value="M">Male (intact)</option>
+          <option value="MN">Male (neutered)</option>
+          <option value="F">Female (intact)</option>
+          <option value="FS">Female (spayed)</option>
+        </select>
+      </div>
+      <div class="field"><label>Age / DOB</label><input type="text" id="f_age"></div>
+      <div class="field"><label>Exam date</label><input type="date" id="f_date"></div>
+    </div>
+    <div class="field">
+      <label>Clinical history / reason for exam</label>
+      <textarea id="f_history" rows="2"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Organs scanned</h2>
+    <p class="subtitle" style="margin:0 0 10px;">All organs are included by default. Deselect any organ not scanned in this exam to hide its section below.</p>
+    <div class="chip-wrap" id="organToggle"></div>
+  </div>
+
+  <div class="card">
+    <h2>Findings by organ</h2>
+    <div id="organs"></div>
+  </div>
+
+  <div class="card">
+    <h2>Comments</h2>
+    <textarea id="f_recs" rows="2" placeholder="Additional comments, follow-up recommendations, etc."></textarea>
+  </div>
+</div>
+
+<div class="print-view">
+  <h1>Abdominal Ultrasound Report</h1>
+  <div class="print-header-grid" id="printHeader"></div>
+  <div class="print-section-title">History</div>
+  <div id="printHistory" style="font-size:13px;"></div>
+  <div class="print-section-title">Findings</div>
+  <div id="printFindings"></div>
+  <div class="print-section-title">Comments</div>
+  <div id="printRecs" style="font-size:13px;"></div>
+</div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://bntockmgymwwyexiknow.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_d_V44IXLVDLtf-WZu1JeUA_r0kPUl6q';
+var sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function showApp(session){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = '';
+  document.getElementById('userEmailLabel').textContent = session && session.user ? session.user.email : '';
+  // Textareas were sized while appContent was hidden (display:none), so their
+  // computed scrollHeight was 0 at that time. Re-run autoResize now that the
+  // content is actually visible and laid out, so boxes display at full height
+  // immediately instead of only after the user clicks into them.
+  document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
+}
+
+function showLogin(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+}
+
+sbClient.auth.onAuthStateChange(function(event, session){
+  if (session) {
+    showApp(session);
+  } else {
+    showLogin();
+  }
+});
+
+sbClient.auth.getSession().then(function(result){
+  var session = result.data.session;
+  if (session) {
+    showApp(session);
+  } else {
+    showLogin();
+  }
+});
+
+document.getElementById('loginSubmit').addEventListener('click', function(){
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errorEl = document.getElementById('loginError');
+  errorEl.style.display = 'none';
+  sbClient.auth.signInWithPassword({ email: email, password: password }).then(function(result){
+    if (result.error) {
+      errorEl.textContent = result.error.message;
+      errorEl.style.display = 'block';
+    }
+  });
+});
+
+document.getElementById('loginPassword').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') document.getElementById('loginSubmit').click();
+});
+
+document.getElementById('signOutBtn').addEventListener('click', function(){
+  sbClient.auth.signOut();
+});
+
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight + 2) + 'px';
+}
+
+var ATTR_DEFS = {
+  size: { label: 'Size', options: [
+    { v: 'na', t: 'N/A', frag: '' },
+    { v: 'normal', t: 'Normal', frag: 'normal in size' },
+    { v: 'enlarged', t: 'Enlarged', frag: 'diffusely enlarged' },
+    { v: 'small', t: 'Small', frag: 'reduced in size' }
+  ]},
+  echo: { label: 'Echogenicity', options: [
+    { v: 'na', t: 'N/A', frag: '' },
+    { v: 'normal', t: 'Normal', frag: 'with normal parenchymal echogenicity' },
+    { v: 'hyper', t: 'Hyperechoic', frag: 'with diffusely hyperechoic parenchyma' },
+    { v: 'hypo', t: 'Hypoechoic', frag: 'with diffusely hypoechoic parenchyma' },
+    { v: 'mixed', t: 'Mixed', frag: 'with heterogeneous parenchymal echogenicity' }
+  ]},
+  margins: { label: 'Margins', options: [
+    { v: 'na', t: 'N/A', frag: '' },
+    { v: 'smooth', t: 'Smooth', frag: 'Margins are smooth and well defined.' },
+    { v: 'irregular', t: 'Irregular', frag: 'Margins are irregular.' }
+  ]},
+  dist: { label: 'Distribution', options: [
+    { v: 'na', t: 'N/A', frag: '' },
+    { v: 'none', t: 'No focal lesion', frag: 'No focal lesions are identified.' },
+    { v: 'focal', t: 'Focal lesion', frag: 'A focal lesion is identified.' },
+    { v: 'diffuse', t: 'Diffuse', frag: 'Diffuse changes are noted throughout the parenchyma.' }
+  ]}
+};
+
+var HOMOHETERO_ECHO_OPTIONS = [
+  { v: 'na', t: 'N/A', frag: '' },
+  { v: 'normal', t: 'Normal', frag: 'with normal parenchymal echogenicity' },
+  { v: 'homogeneous', t: 'Homogeneous', frag: 'with homogeneous echotexture' },
+  { v: 'heterogeneous', t: 'Heterogeneous', frag: 'with heterogeneous echotexture' }
+];
+
+var PANCREAS_SIZE_OPTIONS = [
+  { v: 'na', t: 'N/A', frag: '' },
+  { v: 'normal', t: 'Normal', frag: 'normal in size' },
+  { v: 'enlarged', t: 'Enlarged', frag: 'diffusely enlarged' }
+];
+
+var GI_CATEGORIES = [
+  { key: 'stomach', label: 'Stomach', segments: [
+    { key: 'cardia', name: 'Cardia' },
+    { key: 'body', name: 'Gastric body' },
+    { key: 'pylorus', name: 'Pylorus' }
+  ]},
+  { key: 'small_intestine', label: 'Small intestine', segments: [
+    { key: 'duodenum', name: 'Duodenum' },
+    { key: 'jejunum', name: 'Jejunum' },
+    { key: 'ileum', name: 'Ileum' }
+  ]},
+  { key: 'colon', label: 'Colon', segments: [
+    { key: 'ascending', name: 'Ascending colon' },
+    { key: 'transverse', name: 'Transverse colon' },
+    { key: 'descending', name: 'Descending colon' }
+  ]},
+  { key: 'junctions', label: 'Junctions', isJunction: true, segments: [
+    { key: 'pdj', name: 'Pyloroduodenal junction (PDJ)' },
+    { key: 'icj', name: function(species){ return species === 'Feline' ? 'Ileocecocolic junction (ICCJ)' : 'Ileocolic junction (ICJ)'; } }
+  ]}
+];
+
+var GI_WALL_LAYERING_OPTS = [
+  { v: 'preserved', t: 'Preserved' },
+  { v: 'focal', t: 'Focal loss' },
+  { v: 'diffuse', t: 'Diffuse loss' }
+];
+var GI_LAYER_PATTERN_OPTS = [
+  { v: 'proportionate', t: 'Proportionate' },
+  { v: 'disproportionate', t: 'Disproportionate' }
+];
+var GI_LAYER_OPTS = [
+  { key: 'mucosa', label: 'Mucosa' },
+  { key: 'submucosa', label: 'Submucosa' },
+  { key: 'muscularis', label: 'Muscularis' }
+];
+var GI_PERISTALSIS_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'reduced', t: 'Reduced' },
+  { v: 'increased', t: 'Increased' },
+  { v: 'absent', t: 'Absent' }
+];
+var GI_CONTENTS_OPTS = [
+  { v: 'unremarkable', t: 'Unremarkable' },
+  { v: 'fluid', t: 'Fluid-distended' },
+  { v: 'gas', t: 'Gas-distended' },
+  { v: 'foreign', t: 'Foreign material' }
+];
+var GI_MASS_PRESENT_OPTS = [
+  { v: 'no', t: 'No' },
+  { v: 'yes', t: 'Yes' }
+];
+var GI_MASS_LOCATION_OPTS = [
+  { v: 'mural', t: 'Mural' },
+  { v: 'extraluminal', t: 'Extraluminal' },
+  { v: 'intraluminal', t: 'Intraluminal' }
+];
+var GI_MASS_MARGIN_OPTS = [
+  { v: 'well_defined', t: 'Well-defined' },
+  { v: 'irregular', t: 'Irregular' }
+];
+var GI_MASS_DISTRIBUTION_OPTS = [
+  { v: 'eccentric', t: 'Eccentric' },
+  { v: 'circumferential', t: 'Circumferential' }
+];
+var GI_MASS_ECHO_OPTS = [
+  { v: 'homogeneous', t: 'Homogeneous' },
+  { v: 'heterogeneous', t: 'Heterogeneous' }
+];
+var GI_JUNCTION_PATENCY_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'narrowed', t: 'Narrowed' }
+];
+var GI_JUNCTION_APPEARANCE_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+
+var LYMPH_SIZE_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'enlarged', t: 'Enlarged' }
+];
+var LYMPH_ECHO_OPTS = [
+  { v: 'homogeneous', t: 'Homogeneous' },
+  { v: 'heterogeneous', t: 'Heterogeneous' },
+  { v: 'hyperechoic', t: 'Hyperechoic' },
+  { v: 'hypoechoic_anechoic', t: 'Hypoechoic to anechoic' }
+];
+
+var VASCULATURE_APPEARANCE_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+var VASCULATURE_FINDING_OPTS = [
+  { v: 'thrombus', t: 'Thrombus' },
+  { v: 'dilation', t: 'Dilation' },
+  { v: 'mass_invasion', t: 'Mass invasion' },
+  { v: 'compression', t: 'Compression' }
+];
+
+var PROSTATE_SIZE_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'enlarged', t: 'Enlarged' }
+];
+var PROSTATE_PARENCHYMA_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'heterogeneous', t: 'Heterogeneous' },
+  { v: 'mineralization', t: 'Mineralization present' },
+  { v: 'cystic', t: 'Cystic change present' }
+];
+var PROSTATE_MARGIN_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'smooth', t: 'Smooth' },
+  { v: 'irregular', t: 'Irregular' }
+];
+var TESTICLES_SIZE_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'enlarged', t: 'Enlarged' }
+];
+var GENITAL_SIDE_OPTS = [
+  { v: 'left', t: 'Left' },
+  { v: 'right', t: 'Right' },
+  { v: 'bilateral', t: 'Bilateral' }
+];
+var TESTICLES_ECHO_OPTS = [
+  { v: 'homogeneous', t: 'Homogeneous' },
+  { v: 'heterogeneous', t: 'Heterogeneous' }
+];
+var TESTICLES_MARGIN_OPTS = [
+  { v: 'smooth', t: 'Smooth' },
+  { v: 'irregular', t: 'Irregular' }
+];
+var OVARIES_STATUS_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+var OVARIES_ECHO_OPTS = [
+  { v: 'homogeneous', t: 'Homogeneous' },
+  { v: 'heterogeneous', t: 'Heterogeneous' }
+];
+var OVARIES_FOLLICULAR_OPTS = [
+  { v: 'none', t: 'None' },
+  { v: 'present', t: 'Present' }
+];
+var UTERUS_APPEARANCE_OPTS = [
+  { v: 'not_visualized', t: 'Not visualized' },
+  { v: 'visualized', t: 'Visualized' },
+  { v: 'stump', t: 'Uterine Stump' }
+];
+var UTERUS_FLUID_OPTS = [
+  { v: 'anechoic', t: 'Anechoic, homogeneous' },
+  { v: 'echogenic', t: 'Echogenic and heterogeneous' }
+];
+
+var GALLBLADDER_STATUS_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+var GALLBLADDER_ECHO_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'halo', t: 'Halo sign (wall edema)' },
+  { v: 'hyperechoic', t: 'Diffusely hyperechoic' }
+];
+var GALLBLADDER_CONTENT_OPTS = [
+  { v: 'anechoic', t: 'Anechoic (normal bile)' },
+  { v: 'sludge', t: 'Echogenic sludge' },
+  { v: 'mucocele', t: 'Stellate/kiwi-fruit pattern (mucocele)' },
+  { v: 'choleliths', t: 'Choleliths present' }
+];
+var GALLBLADDER_OBSTRUCTION_OPTS = [
+  { v: 'none', t: 'None' },
+  { v: 'distended', t: 'Gallbladder distended' }
+];
+
+var BILIARY_STATUS_OPTS = [
+  { v: 'na', t: 'N/A' },
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+var BILIARY_WALL_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'thickened', t: 'Thickened' }
+];
+var BILIARY_CONTENT_OPTS = [
+  { v: 'anechoic', t: 'Anechoic bile' },
+  { v: 'echogenic', t: 'Echogenic material' },
+  { v: 'choleliths', t: 'Choleliths present' }
+];
+var BILIARY_OBSTRUCTION_OPTS = [
+  { v: 'none', t: 'None' },
+  { v: 'dilated_tortuous', t: 'Dilated and tortuous' },
+  { v: 'intrahepatic_dilation', t: 'Intrahepatic duct dilation noted' }
+];
+var MDP_STATUS_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'abnormal', t: 'Abnormal' }
+];
+
+var URETER_VISIBLE_OPTS = [
+  { v: 'no', t: 'No' },
+  { v: 'yes', t: 'Yes' }
+];
+var URETER_CONTENT_OPTS = [
+  { v: 'anechoic', t: 'Anechoic fluid' },
+  { v: 'echogenic', t: 'Echogenic material' },
+  { v: 'ureterolith', t: 'Ureterolith(s) present' }
+];
+
+var ORGANS = [
+  { id: 'liver', name: 'Liver', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS },
+  { id: 'gallbladder', name: 'Gallbladder', custom: 'gallbladder' },
+  { id: 'biliary', name: 'Biliary tract', custom: 'biliary' },
+  { id: 'spleen', name: 'Spleen', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    sizeDetailField: { key: 'hilumThickness', label: 'Hilum thickness', unit: 'cm', showWhen: ['na', 'normal', 'enlarged', 'small'] }
+  },
+  { id: 'adrenals', name: 'Adrenal glands', extraLabel: 'Additional notes', sides: true,
+    sideLabels: { left: 'Left adrenal gland', right: 'Right adrenal gland' },
+    echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    measurements: function(species){
+      if (species === 'Feline') {
+        return [ { key: 'pole', label: 'Pole thickness', unit: 'cm' } ];
+      }
+      return [
+        { key: 'cranial', label: 'Cranial pole thickness', unit: 'cm' },
+        { key: 'caudal', label: 'Caudal pole thickness', unit: 'cm' }
+      ];
+    }
+  },
+  { id: 'kidneys', name: 'Kidneys', extraLabel: 'Additional notes', sides: true,
+    sideLabels: { left: 'Left kidney', right: 'Right kidney' },
+    measurements: [
+      { key: 'length', label: 'Length', unit: 'cm' },
+      { key: 'pelvis', label: 'Renal pelvis width', unit: 'cm' }
+    ]
+  },
+  { id: 'ureters', name: 'Ureters', custom: 'ureters' },
+  { id: 'bladder', name: 'Urinary bladder', extraLabel: 'Additional notes', custom: 'bladder' },
+  { id: 'pancreas', name: 'Pancreas', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    sizeOptions: PANCREAS_SIZE_OPTIONS,
+    sizeDetailField: { key: 'thickness', label: 'Thickness', unit: 'cm', showWhen: ['enlarged'] },
+    measurements: [
+      { key: 'ductWidth', label: 'Pancreatic duct width', unit: 'cm' }
+    ]
+  },
+  { id: 'gi', name: 'Gastrointestinal tract', extraLabel: 'Additional notes', custom: 'gi' },
+  { id: 'lymph', name: 'Lymph nodes', custom: 'lymph' },
+  { id: 'vasculature', name: 'Vascular system', extraLabel: 'Additional notes', custom: 'vasculature' },
+  { id: 'genital', name: 'Genital tract', extraLabel: 'Additional notes', custom: 'genital' }
+];
+
+function freshOrganState(){
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '' };
+}
+function freshSideState(){
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '' };
+}
+function freshSidedOrganState(){
+  return { activeSide: 'left', left: freshSideState(), right: freshSideState(), extra: '' };
+}
+
+function freshGISegmentState(){
+  return {
+    wallLayering: 'preserved',
+    wallLayeringDetail: '',
+    totalThickness: '',
+    layerPattern: 'proportionate',
+    layers: { mucosa: false, submucosa: false, muscularis: false },
+    layerThickness: { mucosa: '', submucosa: '', muscularis: '' },
+    layerDescription: '',
+    massPresent: 'no',
+    massLocation: '',
+    massMargin: '',
+    massDistribution: '',
+    massEcho: '',
+    massSize: '',
+    massDescription: '',
+    peristalsis: 'normal',
+    contents: 'unremarkable'
+  };
+}
+function freshGISegmentStateNA(){
+  return {
+    wallLayering: '',
+    wallLayeringDetail: '',
+    totalThickness: '',
+    layerPattern: '',
+    layers: { mucosa: false, submucosa: false, muscularis: false },
+    layerThickness: { mucosa: '', submucosa: '', muscularis: '' },
+    layerDescription: '',
+    massPresent: '',
+    massLocation: '',
+    massMargin: '',
+    massDistribution: '',
+    massEcho: '',
+    massSize: '',
+    massDescription: '',
+    peristalsis: '',
+    contents: ''
+  };
+}
+
+function freshGIJunctionSegmentState(){
+  return {
+    patency: 'normal',
+    appearance: 'normal',
+    appearanceDetail: '',
+    massPresent: 'no',
+    massLocation: '',
+    massMargin: '',
+    massDistribution: '',
+    massEcho: '',
+    massSize: '',
+    massDescription: '',
+    peristalsis: 'normal',
+    contents: 'unremarkable'
+  };
+}
+function freshGIJunctionSegmentStateNA(){
+  return {
+    patency: '',
+    appearance: '',
+    appearanceDetail: '',
+    massPresent: '',
+    massLocation: '',
+    massMargin: '',
+    massDistribution: '',
+    massEcho: '',
+    massSize: '',
+    massDescription: '',
+    peristalsis: '',
+    contents: ''
+  };
+}
+
+function freshGIState(){
+  var segments = {};
+  var segmentIncluded = {};
+  GI_CATEGORIES.forEach(function(cat){
+    cat.segments.forEach(function(seg){
+      segments[seg.key] = cat.isJunction ? freshGIJunctionSegmentState() : freshGISegmentState();
+      segmentIncluded[seg.key] = true;
+    });
+  });
+  return {
+    expanded: { stomach: false, small_intestine: false, colon: false, junctions: false },
+    segments: segments,
+    segmentIncluded: segmentIncluded,
+    extra: ''
+  };
+}
+function freshGIStateNA(){
+  var segments = {};
+  var segmentIncluded = {};
+  GI_CATEGORIES.forEach(function(cat){
+    cat.segments.forEach(function(seg){
+      segments[seg.key] = cat.isJunction ? freshGIJunctionSegmentStateNA() : freshGISegmentStateNA();
+      segmentIncluded[seg.key] = true;
+    });
+  });
+  return {
+    expanded: { stomach: false, small_intestine: false, colon: false, junctions: false },
+    segments: segments,
+    segmentIncluded: segmentIncluded,
+    extra: ''
+  };
+}
+
+var BLADDER_DISTENSION = [
+  { key: 'empty', label: 'Empty', frag: 'empty' },
+  { key: 'mild', label: 'Mildly distended', frag: 'mildly distended' },
+  { key: 'moderate', label: 'Moderately distended', frag: 'moderately distended' },
+  { key: 'marked', label: 'Markedly distended', frag: 'markedly distended' }
+];
+var BLADDER_WALL_OPTS = [
+  { key: 'normal', label: 'Normal (thin, smooth)' },
+  { key: 'diffuse', label: 'Diffusely thickened' },
+  { key: 'focal', label: 'Focally thickened' },
+  { key: 'irregular', label: 'Irregular margin' }
+];
+var BLADDER_CONTENTS = [
+  { key: 'anechoic', label: 'Anechoic', frag: 'anechoic' },
+  { key: 'sediment', label: 'Echogenic sediment', frag: 'echogenic, consistent with sediment' },
+  { key: 'debris', label: 'Floating debris', frag: 'notable for floating echogenic debris' }
+];
+var BLADDER_FOCAL_OPTS = [
+  ['calculi', 'Calculi present'],
+  ['mass', 'Mass lesion present']
+];
+
+function freshBladderState(){
+  return {
+    distension: 'moderate',
+    wall: { normal: true, diffuse: false, focal: false, irregular: false },
+    contents: 'anechoic',
+    focal: { calculi: false, mass: false },
+    extra: ''
+  };
+}
+function freshBladderNAState(){
+  return {
+    distension: '',
+    wall: { normal: false, diffuse: false, focal: false, irregular: false },
+    contents: '',
+    focal: { calculi: false, mass: false },
+    extra: ''
+  };
+}
+
+function freshLymphState(){
+  return { size: 'normal', location: '', echo: '', thickness: '', detail: '' };
+}
+function freshLymphNAState(){
+  return { size: 'na', location: '', echo: '', thickness: '', detail: '' };
+}
+
+function freshVasculatureState(){
+  return { appearance: 'normal', finding: '', vessel: '', detail: '', extra: '' };
+}
+function freshVasculatureNAState(){
+  return { appearance: '', finding: '', vessel: '', detail: '', extra: '' };
+}
+
+function freshGallbladderState(){
+  return { status: 'normal', thickness: '', echo: 'normal', content: 'anechoic', obstruction: 'none', detail: '' };
+}
+function freshGallbladderNAState(){
+  return { status: '', thickness: '', echo: '', content: '', obstruction: '', detail: '' };
+}
+
+function freshBiliaryState(){
+  return {
+    status: 'normal', diameter: '', wall: 'normal', content: 'anechoic', obstruction: 'none', detail: '',
+    mdpScanned: true, mdpStatus: 'normal', mdpSize: '', mdpDetail: ''
+  };
+}
+function freshBiliaryNAState(){
+  return {
+    status: '', diameter: '', wall: '', content: '', obstruction: '', detail: '',
+    mdpScanned: true, mdpStatus: '', mdpSize: '', mdpDetail: ''
+  };
+}
+
+function freshUretersState(){
+  return {
+    visible: 'no',
+    left: { dilated: false, diameter: '', content: [], detail: '' },
+    right: { dilated: false, diameter: '', content: [], detail: '' }
+  };
+}
+function freshUretersNAState(){
+  return {
+    visible: '',
+    left: { dilated: false, diameter: '', content: [], detail: '' },
+    right: { dilated: false, diameter: '', content: [], detail: '' }
+  };
+}
+
+function freshProstateState(){
+  return { size: 'normal', length: '', margins: 'smooth', parenchyma: 'normal', detail: '' };
+}
+function freshProstateNAState(){
+  return { size: 'na', length: '', margins: 'na', parenchyma: 'na', detail: '' };
+}
+
+function freshTesticlesState(){
+  return { size: 'normal', side: '', echo: '', margins: '', length: '', detail: '' };
+}
+function freshTesticlesNAState(){
+  return { size: 'na', side: '', echo: '', margins: '', length: '', detail: '' };
+}
+
+function freshOvariesState(){
+  return { status: 'normal', side: '', echo: '', follicular: '', size: '', detail: '' };
+}
+function freshOvariesNAState(){
+  return { status: 'na', side: '', echo: '', follicular: '', size: '', detail: '' };
+}
+
+function freshUterusState(){
+  return { appearance: 'not_visualized', diameter: '', fluid: '', detail: '' };
+}
+function freshUterusNAState(){
+  return { appearance: '', diameter: '', fluid: '', detail: '' };
+}
+
+function freshGenitalState(){
+  return {
+    prostate: freshProstateState(),
+    testicles: freshTesticlesState(),
+    ovaries: freshOvariesState(),
+    uterus: freshUterusState(),
+    extra: ''
+  };
+}
+function freshGenitalNAState(){
+  return {
+    prostate: freshProstateNAState(),
+    testicles: freshTesticlesNAState(),
+    ovaries: freshOvariesNAState(),
+    uterus: freshUterusNAState(),
+    extra: ''
+  };
+}
+
+function capitalize(str){
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function buildBladderSentence(s){
+  var parts = [];
+
+  var distOpt = BLADDER_DISTENSION.filter(function(d){ return d.key === s.distension; })[0];
+  if (distOpt) parts.push('Urinary bladder is ' + distOpt.frag + '.');
+
+  if (s.wall.normal) {
+    parts.push('Wall is normal in thickness with a smooth margin.');
+  } else {
+    var thicknessFrags = [];
+    if (s.wall.diffuse) thicknessFrags.push('diffusely thickened');
+    if (s.wall.focal) thicknessFrags.push('focally thickened');
+    var hasIrregular = !!s.wall.irregular;
+    if (thicknessFrags.length) {
+      var wallSentence = 'Wall is ' + thicknessFrags.join(' and ');
+      wallSentence += hasIrregular ? ' with an irregular margin.' : '.';
+      parts.push(wallSentence);
+    } else if (hasIrregular) {
+      parts.push('Wall margin is irregular.');
+    }
+  }
+
+  var contentsOpt = BLADDER_CONTENTS.filter(function(c){ return c.key === s.contents; })[0];
+  if (contentsOpt) parts.push('Luminal contents are ' + contentsOpt.frag + '.');
+
+  if (s.focal.calculi || s.focal.mass) {
+    var focalFrags = [];
+    if (s.focal.calculi) focalFrags.push('calculi');
+    if (s.focal.mass) focalFrags.push('a mass lesion');
+    var verb = (s.focal.mass && !s.focal.calculi) ? 'is' : 'are';
+    parts.push(capitalize(focalFrags.join(' and ')) + ' ' + verb + ' present.');
+  } else if (s.distension || s.contents) {
+    parts.push('No calculi or mass lesion identified.');
+  }
+
+  if (s.extra && s.extra.trim()) parts.push(s.extra.trim());
+
+  return parts.join(' ');
+}
+
+function buildLymphSentence(s){
+  var parts = [];
+
+  if (s.size === 'normal') {
+    parts.push('Unremarkable lymphatic system. LN size are generally normal.');
+  } else if (s.size === 'enlarged') {
+    var lead = [];
+    if (s.location && s.location.trim()) lead.push(s.location.trim());
+    var echoOpt = LYMPH_ECHO_OPTS.filter(function(o){ return o.v === s.echo; })[0];
+    if (echoOpt) lead.push(echoOpt.t.toLowerCase() + ' in echogenicity');
+    if (s.thickness && s.thickness.trim()) lead.push('measuring up to ' + s.thickness.trim() + ' mm in thickness');
+    if (lead.length) parts.push(capitalize(lead.join(', ')) + '.');
+    if (s.detail && s.detail.trim()) parts.push(s.detail.trim());
+  }
+
+  return parts.join(' ');
+}
+
+function buildVasculatureSentence(s){
+  var parts = [];
+
+  if (s.appearance === 'normal') {
+    parts.push('The aorta and caudal vena cava are normal in caliber and echogenicity, with no evidence of thrombosis or mass invasion.');
+  } else if (s.appearance === 'abnormal') {
+    var findingOpt = VASCULATURE_FINDING_OPTS.filter(function(o){ return o.v === s.finding; })[0];
+    var lead = (s.vessel && s.vessel.trim() ? s.vessel.trim() : 'Vasculature') + (findingOpt ? ' shows evidence of ' + findingOpt.t.toLowerCase() : ' is abnormal');
+    parts.push(lead + '.');
+    if (s.detail && s.detail.trim()) parts.push(s.detail.trim());
+  }
+
+  if (s.extra && s.extra.trim()) parts.push(s.extra.trim());
+
+  return parts.join(' ');
+}
+
+function buildGallbladderSentence(s){
+  var parts = [];
+
+  var wallFrags = [];
+  var echoOpt = GALLBLADDER_ECHO_OPTS.filter(function(o){ return o.v === s.echo; })[0];
+  if (echoOpt) wallFrags.push(echoOpt.v === 'normal' ? 'normal wall echogenicity' : echoOpt.t.toLowerCase());
+  if (s.thickness && s.thickness.trim()) wallFrags.push('wall thickness ' + s.thickness.trim() + ' mm');
+  if (wallFrags.length) parts.push('Gallbladder shows ' + wallFrags.join(', ') + '.');
+
+  var contentOpt = GALLBLADDER_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
+  if (contentOpt) parts.push('Luminal content is ' + contentOpt.t.toLowerCase() + '.');
+
+  var obstructionOpt = GALLBLADDER_OBSTRUCTION_OPTS.filter(function(o){ return o.v === s.obstruction; })[0];
+  if (obstructionOpt) {
+    parts.push(obstructionOpt.v === 'none' ? 'No evidence of biliary obstruction.' : obstructionOpt.t + ' noted, raising concern for obstruction.');
+  }
+
+  if (s.detail && s.detail.trim()) parts.push(s.detail.trim());
+
+  return parts.join(' ');
+}
+
+function buildBiliarySentence(s){
+  var parts = [];
+
+  var wallFrags = [];
+  var wallOpt = BILIARY_WALL_OPTS.filter(function(o){ return o.v === s.wall; })[0];
+  if (wallOpt) wallFrags.push(wallOpt.v === 'normal' ? 'normal in wall appearance' : wallOpt.t.toLowerCase() + ' wall');
+  if (s.diameter && s.diameter.trim()) wallFrags.push('measuring ' + s.diameter.trim() + ' mm in diameter');
+  if (wallFrags.length) parts.push('Extrahepatic bile duct is ' + wallFrags.join(', ') + '.');
+
+  var contentOpt = BILIARY_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
+  if (contentOpt) parts.push('Luminal content is ' + contentOpt.t.toLowerCase() + '.');
+
+  var obstructionOpt = BILIARY_OBSTRUCTION_OPTS.filter(function(o){ return o.v === s.obstruction; })[0];
+  if (obstructionOpt) {
+    parts.push(obstructionOpt.v === 'none' ? 'No evidence of obstruction.' : obstructionOpt.t + ' noted, consistent with obstruction.');
+  }
+
+  if (s.detail && s.detail.trim()) parts.push(s.detail.trim());
+
+  if (s.mdpScanned) {
+    var mdpTraits = [];
+    var mdpLead = s.mdpStatus === 'normal' ? 'normal in appearance'
+      : s.mdpStatus === 'abnormal' ? 'abnormal in appearance'
+      : '';
+    if (mdpLead) mdpTraits.push(mdpLead);
+    if (s.mdpSize && s.mdpSize.trim()) mdpTraits.push('measuring ' + s.mdpSize.trim() + ' mm');
+    if (mdpTraits.length) parts.push('Major duodenal papilla (MDP) is ' + mdpTraits.join(', ') + '.');
+    if (s.mdpStatus === 'abnormal' && s.mdpDetail && s.mdpDetail.trim()) parts.push(s.mdpDetail.trim());
+  }
+
+  return parts.join(' ');
+}
+
+function buildUretersSideSentence(label, side){
+  if (!side.dilated) return '';
+  var traits = [];
+  if (side.diameter && side.diameter.trim()) traits.push('measuring ' + side.diameter.trim() + ' mm in diameter');
+  var contentLabels = (side.content || []).map(function(v){
+    var opt = URETER_CONTENT_OPTS.filter(function(o){ return o.v === v; })[0];
+    return opt ? opt.t.toLowerCase() : '';
+  }).filter(function(t){ return t; });
+  if (contentLabels.length) traits.push('contents ' + contentLabels.join(' and '));
+  var sentence = label + ' ureter is visible and dilated' + (traits.length ? ', ' + traits.join(', ') : '') + '.';
+  if (side.detail && side.detail.trim()) sentence += ' ' + side.detail.trim();
+  return sentence;
+}
+
+function buildUretersSentence(s){
+  if (s.visible === 'no') {
+    return 'Ureters are not visualized.';
+  } else if (s.visible === 'yes') {
+    var lines = [];
+    var leftSentence = buildUretersSideSentence('Left', s.left);
+    var rightSentence = buildUretersSideSentence('Right', s.right);
+    if (leftSentence) lines.push(leftSentence);
+    if (rightSentence) lines.push(rightSentence);
+    return lines.join('\n');
+  }
+
+  return '';
+}
+
+function buildGenitalSentence(s){
+  var lines = [];
+  var sexCategory = getSexCategory();
+
+  if (sexCategory === 'male') {
+    var pParts = [];
+    var p = s.prostate;
+    var pParenchymaFrag = p.parenchyma === 'normal' ? 'homogeneous echogenicity'
+      : p.parenchyma === 'heterogeneous' ? 'heterogeneous echogenicity'
+      : p.parenchyma === 'mineralization' ? 'mineralization noted within the parenchyma'
+      : p.parenchyma === 'cystic' ? 'a cystic structure noted within the parenchyma'
+      : '';
+    var pSizeFrag = p.size === 'normal' ? 'normal in size' : p.size === 'enlarged' ? 'enlarged' : '';
+    if (pSizeFrag && p.length && p.length.trim()) pSizeFrag += ' (' + p.length.trim() + ' cm)';
+    var pLead = [];
+    if (pSizeFrag) pLead.push(pSizeFrag);
+    if (pParenchymaFrag) pLead.push(pParenchymaFrag);
+    if (pLead.length) pParts.push('Prostate is ' + pLead.join(', ') + '.');
+
+    if (p.margins === 'smooth') pParts.push('Margins are smooth and well defined.');
+    else if (p.margins === 'irregular') pParts.push('Margins are irregular.');
+
+    var pAbnormal = p.size === 'enlarged' || p.margins === 'irregular'
+      || p.parenchyma === 'heterogeneous' || p.parenchyma === 'mineralization' || p.parenchyma === 'cystic';
+    if (pAbnormal && p.detail && p.detail.trim()) pParts.push(p.detail.trim());
+
+    if (pParts.length) lines.push(pParts.join(' '));
+
+    var tParts = [];
+    var t = s.testicles;
+    if (t.size === 'normal') {
+      tParts.push('Testicles are normal in size, bilaterally symmetric, with homogeneous echogenicity.');
+    } else if (t.size === 'enlarged') {
+      var tSideOpt = GENITAL_SIDE_OPTS.filter(function(o){ return o.v === t.side; })[0];
+      var tEchoOpt = TESTICLES_ECHO_OPTS.filter(function(o){ return o.v === t.echo; })[0];
+      var tMarginOpt = TESTICLES_MARGIN_OPTS.filter(function(o){ return o.v === t.margins; })[0];
+      var tBilateral = tSideOpt && tSideOpt.v === 'bilateral';
+      var tSubject = tBilateral ? 'Testicles'
+        : tSideOpt ? (tSideOpt.t + ' testicle')
+        : 'Testicle';
+      var tTraits = [];
+      if (tEchoOpt) tTraits.push(tEchoOpt.t.toLowerCase() + ' echogenicity');
+      if (tMarginOpt) tTraits.push(tMarginOpt.t.toLowerCase() + ' margins');
+      if (t.length && t.length.trim()) tTraits.push('measuring ' + t.length.trim() + ' cm');
+      tParts.push(tSubject + ' ' + (tBilateral ? 'are' : 'is') + ' enlarged' + (tTraits.length ? ', ' + tTraits.join(', ') : '') + '.');
+      if (t.detail && t.detail.trim()) tParts.push(t.detail.trim());
+    }
+
+    if (tParts.length) lines.push(tParts.join(' '));
+  } else if (sexCategory === 'female') {
+    var ovParts = [];
+    var ov = s.ovaries;
+    if (ov.status === 'normal') {
+      ovParts.push('Ovaries are normal in size and echogenicity bilaterally.');
+    } else if (ov.status === 'abnormal') {
+      var ovSideOpt = GENITAL_SIDE_OPTS.filter(function(o){ return o.v === ov.side; })[0];
+      var ovEchoOpt = OVARIES_ECHO_OPTS.filter(function(o){ return o.v === ov.echo; })[0];
+      var ovBilateral = ovSideOpt && ovSideOpt.v === 'bilateral';
+      var ovSubject = ovBilateral ? 'Ovaries'
+        : ovSideOpt ? (ovSideOpt.t + ' ovary')
+        : 'Ovary';
+      var ovTraits = [];
+      if (ovEchoOpt) ovTraits.push(ovEchoOpt.t.toLowerCase() + ' echogenicity');
+      if (ov.follicular === 'present') ovTraits.push('follicular/cystic structures present');
+      if (ov.size && ov.size.trim()) ovTraits.push('measuring ' + ov.size.trim() + ' cm');
+      ovParts.push(ovSubject + ' ' + (ovBilateral ? 'appear' : 'appears') + ' abnormal' + (ovTraits.length ? ', ' + ovTraits.join(', ') : '') + '.');
+      if (ov.detail && ov.detail.trim()) ovParts.push(ov.detail.trim());
+    }
+
+    if (ovParts.length) lines.push(ovParts.join(' '));
+
+    var uParts = [];
+    var u = s.uterus;
+    if (u.appearance === 'not_visualized') {
+      uParts.push('Uterus is not visualized, consistent with normal involution.');
+    } else if (u.appearance === 'visualized' || u.appearance === 'stump') {
+      var uSubject = u.appearance === 'stump' ? 'Uterine stump' : 'Uterus';
+      var uTraits = [];
+      if (u.diameter && u.diameter.trim()) uTraits.push('measuring ' + u.diameter.trim() + ' cm in diameter');
+      var uFluidOpt = UTERUS_FLUID_OPTS.filter(function(o){ return o.v === u.fluid; })[0];
+      if (uFluidOpt) uTraits.push('luminal fluid is ' + uFluidOpt.t.toLowerCase());
+      uParts.push(uSubject + ' is visualized' + (uTraits.length ? ', ' + uTraits.join(', ') : '') + '.');
+      if (u.detail && u.detail.trim()) uParts.push(u.detail.trim());
+    }
+
+    if (uParts.length) lines.push(uParts.join(' '));
+  }
+
+  if (s.extra && s.extra.trim()) lines.push(s.extra.trim());
+
+  return lines.join('\n');
+}
+
+var state = {};
+ORGANS.forEach(function(o){
+  state[o.id] = o.custom === 'bladder' ? freshBladderState() :
+    (o.custom === 'gi' ? freshGIState() :
+    (o.custom === 'lymph' ? freshLymphState() :
+    (o.custom === 'vasculature' ? freshVasculatureState() :
+    (o.custom === 'genital' ? freshGenitalState() :
+    (o.custom === 'gallbladder' ? freshGallbladderState() :
+    (o.custom === 'biliary' ? freshBiliaryState() :
+    (o.custom === 'ureters' ? freshUretersState() :
+    (o.sides ? freshSidedOrganState() : freshOrganState()))))))));
+});
+
+var organIncluded = {};
+ORGANS.forEach(function(o){ organIncluded[o.id] = true; });
+
+var organToggleEl = document.getElementById('organToggle');
+function renderOrganToggle(){
+  organToggleEl.innerHTML = '';
+  ORGANS.forEach(function(o){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip' + (organIncluded[o.id] ? ' active' : '');
+    chip.textContent = o.name;
+    chip.addEventListener('click', function(){
+      organIncluded[o.id] = !organIncluded[o.id];
+      renderOrganToggle();
+      renderOrgans();
+    });
+    organToggleEl.appendChild(chip);
+  });
+}
+
+function buildSentence(organName, s, measurementsDefs, echoOptions){
+  var parts = [];
+  var sizeOpt = ATTR_DEFS.size.options.filter(function(o){ return o.v === s.size; })[0];
+  var echoOpt = (echoOptions || ATTR_DEFS.echo.options).filter(function(o){ return o.v === s.echo; })[0];
+  var marginsOpt = ATTR_DEFS.margins.options.filter(function(o){ return o.v === s.margins; })[0];
+  var distOpt = ATTR_DEFS.dist.options.filter(function(o){ return o.v === s.dist; })[0];
+
+  var sizeText = (sizeOpt && sizeOpt.frag) ? sizeOpt.frag : '';
+  if (measurementsDefs && measurementsDefs.length) {
+    var mFrags = [];
+    measurementsDefs.forEach(function(m){
+      var val = s.measurements && s.measurements[m.key];
+      if (val && val.trim()) {
+        mFrags.push(m.label.charAt(0).toLowerCase() + m.label.slice(1) + ' ' + val.trim() + (m.unit ? ' ' + m.unit : ''));
+      }
+    });
+    if (mFrags.length) {
+      var measParen = '(' + mFrags.join(', ') + ')';
+      sizeText = sizeText ? sizeText + ' ' + measParen : measParen;
+    }
+  }
+
+  var lead = [];
+  if (sizeText) lead.push(sizeText);
+  if (echoOpt && echoOpt.frag) lead.push(echoOpt.frag);
+  if (lead.length) parts.push(organName + ' is ' + lead.join(', ') + '.');
+
+  if (marginsOpt && marginsOpt.frag) parts.push(marginsOpt.frag);
+  if (distOpt && distOpt.frag) parts.push(distOpt.frag);
+  if ((s.dist === 'focal' || s.dist === 'diffuse') && s.lesionDetail && s.lesionDetail.trim()) {
+    parts.push(s.lesionDetail.trim());
+  }
+  if (s.extra && s.extra.trim()) parts.push(s.extra.trim());
+
+  return parts.join(' ');
+}
+
+function getSpecies(){
+  var el = document.getElementById('f_species');
+  return el ? el.value : '';
+}
+
+function getSexCategory(){
+  var el = document.getElementById('f_sex');
+  var v = el ? el.value : '';
+  if (v === 'M' || v === 'MN') return 'male';
+  if (v === 'F' || v === 'FS') return 'female';
+  return '';
+}
+
+function getMeasurementsFor(o){
+  if (typeof o.measurements === 'function') return o.measurements(getSpecies());
+  return o.measurements;
+}
+
+function getEchoOptionsFor(o){
+  return o.echoOptions || ATTR_DEFS.echo.options;
+}
+
+function getSizeOptionsFor(o){
+  return o.sizeOptions || ATTR_DEFS.size.options;
+}
+
+function getAllMeasurementsFor(o, activeState){
+  var base = getMeasurementsFor(o) || [];
+  if (o.sizeDetailField && o.sizeDetailField.showWhen.indexOf(activeState.size) !== -1) {
+    var sizeDetailDef = { key: o.sizeDetailField.key, label: o.sizeDetailField.label, unit: o.sizeDetailField.unit };
+    return [sizeDetailDef].concat(base);
+  }
+  return base;
+}
+
+function buildSidedSentence(o){
+  var st = state[o.id];
+  var measurementsDefs = getMeasurementsFor(o);
+  var echoOptions = getEchoOptionsFor(o);
+  var leftText = buildSentence(o.sideLabels.left, st.left, measurementsDefs, echoOptions);
+  var rightText = buildSentence(o.sideLabels.right, st.right, measurementsDefs, echoOptions);
+  var lines = [leftText, rightText].filter(Boolean);
+  if (st.extra && st.extra.trim()) lines.push(st.extra.trim());
+  return lines.join('\n');
+}
+
+function buildGISegmentSentence(segName, s){
+  var parts = [];
+
+  if (s.patency !== undefined) {
+    var patencyFrag = s.patency === 'normal' ? 'patent'
+      : s.patency === 'narrowed' ? 'narrowed'
+      : '';
+    var appearanceFrag = s.appearance === 'normal' ? 'normal in appearance'
+      : s.appearance === 'abnormal' ? 'abnormal in appearance'
+      : '';
+    var jLead = [];
+    if (patencyFrag) jLead.push(patencyFrag);
+    if (appearanceFrag) jLead.push(appearanceFrag);
+    if (jLead.length) parts.push(segName + ' is ' + jLead.join(', ') + '.');
+
+    if (s.appearance === 'abnormal' && s.appearanceDetail && s.appearanceDetail.trim()) {
+      parts.push(s.appearanceDetail.trim());
+    }
+  } else {
+    var layeringFrag = s.wallLayering === 'preserved' ? 'wall layering is preserved'
+      : s.wallLayering === 'focal' ? 'wall layering shows focal loss'
+      : s.wallLayering === 'diffuse' ? 'wall layering shows diffuse loss'
+      : '';
+    var thicknessFrag = (s.totalThickness && s.totalThickness.trim()) ? ('total thickness measures ' + s.totalThickness.trim() + ' mm') : '';
+    var lead = [];
+    if (layeringFrag) lead.push(layeringFrag);
+    if (thicknessFrag) lead.push(thicknessFrag);
+    if (lead.length) parts.push(segName + ' ' + lead.join(', ') + '.');
+
+    if ((s.wallLayering === 'focal' || s.wallLayering === 'diffuse') && s.wallLayeringDetail && s.wallLayeringDetail.trim()) {
+      parts.push(s.wallLayeringDetail.trim());
+    }
+
+    if (s.layerPattern === 'disproportionate') {
+      var selectedLayers = GI_LAYER_OPTS.filter(function(lo){ return s.layers && s.layers[lo.key]; });
+      if (selectedLayers.length) {
+        var layerFrags = selectedLayers.map(function(lo){
+          var t = s.layerThickness && s.layerThickness[lo.key];
+          return lo.label.toLowerCase() + (t && t.trim() ? ' (' + t.trim() + ' mm)' : '');
+        });
+        parts.push('Disproportionate thickening of the ' + layerFrags.join(', ') + (selectedLayers.length > 1 ? ' layers.' : ' layer.'));
+      }
+      if (s.layerDescription && s.layerDescription.trim()) {
+        parts.push(s.layerDescription.trim());
+      }
+    }
+  }
+
+  if (s.massPresent === 'yes') {
+    var massDescriptors = [];
+    var massDistOpt = GI_MASS_DISTRIBUTION_OPTS.filter(function(o){ return o.v === s.massDistribution; })[0];
+    var massLocOpt = GI_MASS_LOCATION_OPTS.filter(function(o){ return o.v === s.massLocation; })[0];
+    if (massDistOpt) massDescriptors.push(massDistOpt.t.toLowerCase());
+    if (massLocOpt) massDescriptors.push(massLocOpt.t.toLowerCase());
+    var massLead = (massDescriptors.length ? capitalize(massDescriptors.join(' ')) + ' m' : 'M') + 'ass identified';
+    var massTraits = [];
+    var massMarginOpt = GI_MASS_MARGIN_OPTS.filter(function(o){ return o.v === s.massMargin; })[0];
+    var massEchoOpt = GI_MASS_ECHO_OPTS.filter(function(o){ return o.v === s.massEcho; })[0];
+    if (massMarginOpt) massTraits.push(massMarginOpt.t.toLowerCase() + ' margins');
+    if (massEchoOpt) massTraits.push(massEchoOpt.t.toLowerCase() + ' echogenicity');
+    if (s.massSize && s.massSize.trim()) massTraits.push('measuring ' + s.massSize.trim() + ' mm');
+    parts.push(massLead + (massTraits.length ? ', ' + massTraits.join(', ') : '') + '.');
+    if (s.massDescription && s.massDescription.trim()) {
+      parts.push(s.massDescription.trim());
+    }
+  }
+
+  var peristalsisFrag = s.peristalsis === 'normal' ? 'Peristalsis is normal.'
+    : s.peristalsis === 'reduced' ? 'Peristalsis is reduced.'
+    : s.peristalsis === 'increased' ? 'Peristalsis is increased.'
+    : s.peristalsis === 'absent' ? 'Peristalsis is absent.'
+    : '';
+  if (peristalsisFrag) parts.push(peristalsisFrag);
+
+  var contentsFrag = s.contents === 'unremarkable' ? 'Luminal contents are unremarkable.'
+    : s.contents === 'fluid' ? 'Luminal contents are fluid-distended.'
+    : s.contents === 'gas' ? 'Luminal contents are gas-distended.'
+    : s.contents === 'foreign' ? 'Luminal contents are notable for foreign material.'
+    : '';
+  if (contentsFrag) parts.push(contentsFrag);
+
+  return parts.join(' ');
+}
+
+function isGISegmentNormal(s){
+  if (s.patency !== undefined) {
+    return s.patency === 'normal'
+      && s.appearance === 'normal'
+      && s.peristalsis === 'normal'
+      && s.contents === 'unremarkable'
+      && s.massPresent !== 'yes'
+      && (!s.appearanceDetail || !s.appearanceDetail.trim());
+  }
+  return s.wallLayering === 'preserved'
+    && s.layerPattern === 'proportionate'
+    && s.peristalsis === 'normal'
+    && s.contents === 'unremarkable'
+    && s.massPresent !== 'yes'
+    && (!s.totalThickness || !s.totalThickness.trim())
+    && (!s.wallLayeringDetail || !s.wallLayeringDetail.trim())
+    && (!s.layerDescription || !s.layerDescription.trim());
+}
+
+function buildGISentence(s){
+  var blocks = [];
+  GI_CATEGORIES.forEach(function(cat){
+    var normalNames = [];
+    var abnormalLines = [];
+    cat.segments.forEach(function(seg){
+      if (s.segmentIncluded && s.segmentIncluded[seg.key] === false) return;
+      var segState = s.segments[seg.key];
+      var segName = typeof seg.name === 'function' ? seg.name(getSpecies()) : seg.name;
+      if (isGISegmentNormal(segState)) {
+        normalNames.push(segName);
+      } else {
+        var line = buildGISegmentSentence(segName, segState);
+        if (line) abnormalLines.push(line);
+      }
+    });
+    var catLines = [];
+    if (normalNames.length) {
+      var normalSummary = cat.isJunction
+        ? 'patent and normal in appearance. Peristalsis is normal. Luminal contents are unremarkable.'
+        : 'wall layering is preserved. Peristalsis is normal. Luminal contents are unremarkable.';
+      catLines.push(normalNames.join(', ') + ': ' + normalSummary);
+    }
+    abnormalLines.forEach(function(l){ catLines.push(l); });
+    if (catLines.length) blocks.push(catLines.join('\n'));
+  });
+  if (s.extra && s.extra.trim()) blocks.push(s.extra.trim());
+  return blocks.join('\n\n');
+}
+
+function renderGISection(o, s, section){
+  GI_CATEGORIES.forEach(function(cat){
+    var catWrap = document.createElement('div');
+    catWrap.className = 'gi-category';
+
+    var isOpen = !!s.expanded[cat.key];
+    var catBtn = document.createElement('button');
+    catBtn.type = 'button';
+    catBtn.className = 'gi-category-btn';
+    catBtn.textContent = (isOpen ? '▾ ' : '▸ ') + cat.label;
+    catBtn.addEventListener('click', function(){
+      state[o.id].expanded[cat.key] = !state[o.id].expanded[cat.key];
+      renderOrgans();
+    });
+    catWrap.appendChild(catBtn);
+
+    function giChipRow(container, labelText, options, getValue, setValue){
+      var row = document.createElement('div');
+      row.className = 'attr-row';
+      var label = document.createElement('span');
+      label.className = 'attr-label';
+      label.textContent = labelText;
+      row.appendChild(label);
+      var chipWrap = document.createElement('div');
+      chipWrap.className = 'chip-wrap';
+      options.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          setValue(opt.v);
+          renderOrgans();
+        });
+        chipWrap.appendChild(chip);
+      });
+      row.appendChild(chipWrap);
+      container.appendChild(row);
+    }
+
+    if (isOpen) {
+      cat.segments.forEach(function(seg){
+        var segState = s.segments[seg.key];
+        var segIncluded = s.segmentIncluded ? s.segmentIncluded[seg.key] !== false : true;
+        var segWrap = document.createElement('div');
+        segWrap.className = 'gi-segment';
+
+        var segNameRow = document.createElement('div');
+        segNameRow.style.display = 'flex';
+        segNameRow.style.alignItems = 'center';
+        segNameRow.style.gap = '8px';
+        segNameRow.style.marginBottom = '6px';
+
+        var segNameEl = document.createElement('div');
+        segNameEl.className = 'gi-segment-name';
+        segNameEl.style.marginBottom = '0';
+        segNameEl.textContent = typeof seg.name === 'function' ? seg.name(getSpecies()) : seg.name;
+        segNameRow.appendChild(segNameEl);
+
+        var segToggleBtn = document.createElement('button');
+        segToggleBtn.type = 'button';
+        segToggleBtn.className = 'chip' + (segIncluded ? ' active' : '');
+        segToggleBtn.style.fontSize = '11px';
+        segToggleBtn.style.padding = '2px 9px';
+        segToggleBtn.textContent = segIncluded ? 'Scanned' : 'Not scanned';
+        segToggleBtn.addEventListener('click', function(){
+          if (!state[o.id].segmentIncluded) state[o.id].segmentIncluded = {};
+          state[o.id].segmentIncluded[seg.key] = !segIncluded;
+          renderOrgans();
+        });
+        segNameRow.appendChild(segToggleBtn);
+
+        segWrap.appendChild(segNameRow);
+
+        if (!segIncluded) {
+          catWrap.appendChild(segWrap);
+          return;
+        }
+
+        if (cat.isJunction) {
+          giChipRow(segWrap, 'Patency', GI_JUNCTION_PATENCY_OPTS,
+            function(){ return segState.patency; },
+            function(v){ state[o.id].segments[seg.key].patency = v; }
+          );
+
+          giChipRow(segWrap, 'Appearance', GI_JUNCTION_APPEARANCE_OPTS,
+            function(){ return segState.appearance; },
+            function(v){ state[o.id].segments[seg.key].appearance = v; }
+          );
+
+          if (segState.appearance === 'abnormal') {
+            var apField = document.createElement('div');
+            apField.className = 'field';
+            apField.style.marginTop = '6px';
+            var apLabel = document.createElement('label');
+            apLabel.textContent = 'Additional detailed description';
+            apField.appendChild(apLabel);
+            var apInput = document.createElement('input');
+            apInput.type = 'text';
+            apInput.placeholder = 'e.g. mildly thickened with preserved layering';
+            apInput.value = segState.appearanceDetail || '';
+            apInput.addEventListener('input', function(){
+              state[o.id].segments[seg.key].appearanceDetail = apInput.value;
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            });
+            apField.appendChild(apInput);
+            segWrap.appendChild(apField);
+          }
+        } else {
+          giChipRow(segWrap, 'Wall layering', GI_WALL_LAYERING_OPTS,
+            function(){ return segState.wallLayering; },
+            function(v){ state[o.id].segments[seg.key].wallLayering = v; }
+          );
+
+          if (segState.wallLayering === 'focal' || segState.wallLayering === 'diffuse') {
+            var wlField = document.createElement('div');
+            wlField.className = 'field';
+            wlField.style.marginTop = '6px';
+            var wlLabel = document.createElement('label');
+            wlLabel.textContent = 'Additional detailed description';
+            wlField.appendChild(wlLabel);
+            var wlInput = document.createElement('input');
+            wlInput.type = 'text';
+            wlInput.placeholder = 'e.g. circumferential loss of layering over a 2 cm segment';
+            wlInput.value = segState.wallLayeringDetail || '';
+            wlInput.addEventListener('input', function(){
+              state[o.id].segments[seg.key].wallLayeringDetail = wlInput.value;
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            });
+            wlField.appendChild(wlInput);
+            segWrap.appendChild(wlField);
+          }
+
+          var ttField = document.createElement('div');
+          ttField.className = 'field';
+          ttField.style.marginTop = '6px';
+          var ttLabel = document.createElement('label');
+          ttLabel.textContent = 'Total Thickness (mm)';
+          ttField.appendChild(ttLabel);
+          var ttInput = document.createElement('input');
+          ttInput.type = 'text';
+          ttInput.placeholder = 'e.g. 3.2';
+          ttInput.value = segState.totalThickness || '';
+          ttInput.addEventListener('input', function(){
+            state[o.id].segments[seg.key].totalThickness = ttInput.value;
+            textArea.value = buildGISentence(state[o.id]);
+            autoResize(textArea);
+          });
+          ttField.appendChild(ttInput);
+          segWrap.appendChild(ttField);
+
+          giChipRow(segWrap, 'Layer thickness pattern', GI_LAYER_PATTERN_OPTS,
+            function(){ return segState.layerPattern; },
+            function(v){ state[o.id].segments[seg.key].layerPattern = v; }
+          );
+
+          if (segState.layerPattern === 'disproportionate') {
+            var layerRow = document.createElement('div');
+            layerRow.className = 'attr-row';
+            var layerLabel = document.createElement('span');
+            layerLabel.className = 'attr-label';
+            layerLabel.textContent = 'Layer(s)';
+            layerRow.appendChild(layerLabel);
+            var layerChipWrap = document.createElement('div');
+            layerChipWrap.className = 'chip-wrap';
+            GI_LAYER_OPTS.forEach(function(lo){
+              var chip = document.createElement('button');
+              chip.type = 'button';
+              chip.className = 'chip' + (segState.layers[lo.key] ? ' active' : '');
+              chip.textContent = lo.label;
+              chip.addEventListener('click', function(){
+                state[o.id].segments[seg.key].layers[lo.key] = !state[o.id].segments[seg.key].layers[lo.key];
+                renderOrgans();
+              });
+              layerChipWrap.appendChild(chip);
+            });
+            layerRow.appendChild(layerChipWrap);
+            segWrap.appendChild(layerRow);
+
+            var selectedLayerKeys = GI_LAYER_OPTS.filter(function(lo){ return segState.layers[lo.key]; });
+            if (selectedLayerKeys.length) {
+              var layerMeasGrid = document.createElement('div');
+              layerMeasGrid.className = 'grid';
+              layerMeasGrid.style.marginTop = '6px';
+              selectedLayerKeys.forEach(function(lo){
+                var lField = document.createElement('div');
+                lField.className = 'field';
+                var lLabel = document.createElement('label');
+                lLabel.textContent = lo.label + ' thickness (mm)';
+                lField.appendChild(lLabel);
+                var lInput = document.createElement('input');
+                lInput.type = 'text';
+                lInput.placeholder = 'e.g. 2.1';
+                lInput.value = segState.layerThickness[lo.key] || '';
+                lInput.addEventListener('input', function(){
+                  state[o.id].segments[seg.key].layerThickness[lo.key] = lInput.value;
+                  textArea.value = buildGISentence(state[o.id]);
+                  autoResize(textArea);
+                });
+                lField.appendChild(lInput);
+                layerMeasGrid.appendChild(lField);
+              });
+              segWrap.appendChild(layerMeasGrid);
+            }
+
+            var descField = document.createElement('div');
+            descField.className = 'field';
+            descField.style.marginTop = '6px';
+            var descLabel = document.createElement('label');
+            descLabel.textContent = 'Description';
+            descField.appendChild(descLabel);
+            var descInput = document.createElement('input');
+            descInput.type = 'text';
+            descInput.placeholder = 'e.g. hypoechoic, expansile mucosal thickening';
+            descInput.value = segState.layerDescription || '';
+            descInput.addEventListener('input', function(){
+              state[o.id].segments[seg.key].layerDescription = descInput.value;
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            });
+            descField.appendChild(descInput);
+            segWrap.appendChild(descField);
+          }
+        }
+
+        giChipRow(segWrap, 'Mass present', GI_MASS_PRESENT_OPTS,
+          function(){ return segState.massPresent; },
+          function(v){ state[o.id].segments[seg.key].massPresent = v; }
+        );
+
+        if (segState.massPresent === 'yes') {
+          giChipRow(segWrap, 'Mass location', GI_MASS_LOCATION_OPTS,
+            function(){ return segState.massLocation; },
+            function(v){ state[o.id].segments[seg.key].massLocation = v; }
+          );
+          giChipRow(segWrap, 'Mass distribution', GI_MASS_DISTRIBUTION_OPTS,
+            function(){ return segState.massDistribution; },
+            function(v){ state[o.id].segments[seg.key].massDistribution = v; }
+          );
+          giChipRow(segWrap, 'Mass margin', GI_MASS_MARGIN_OPTS,
+            function(){ return segState.massMargin; },
+            function(v){ state[o.id].segments[seg.key].massMargin = v; }
+          );
+          giChipRow(segWrap, 'Mass echogenicity', GI_MASS_ECHO_OPTS,
+            function(){ return segState.massEcho; },
+            function(v){ state[o.id].segments[seg.key].massEcho = v; }
+          );
+
+          var msField = document.createElement('div');
+          msField.className = 'field';
+          msField.style.marginTop = '6px';
+          var msLabel = document.createElement('label');
+          msLabel.textContent = 'Mass size (L x W x H, mm)';
+          msField.appendChild(msLabel);
+          var msInput = document.createElement('input');
+          msInput.type = 'text';
+          msInput.placeholder = 'e.g. 20 x 15 x 18';
+          msInput.value = segState.massSize || '';
+          msInput.addEventListener('input', function(){
+            state[o.id].segments[seg.key].massSize = msInput.value;
+            textArea.value = buildGISentence(state[o.id]);
+            autoResize(textArea);
+          });
+          msField.appendChild(msInput);
+          segWrap.appendChild(msField);
+
+          var mdField = document.createElement('div');
+          mdField.className = 'field';
+          mdField.style.marginTop = '6px';
+          var mdLabel = document.createElement('label');
+          mdLabel.textContent = 'Mass description';
+          mdField.appendChild(mdLabel);
+          var mdInput = document.createElement('input');
+          mdInput.type = 'text';
+          mdInput.placeholder = 'e.g. associated loss of wall layering; mild regional lymphadenopathy noted';
+          mdInput.value = segState.massDescription || '';
+          mdInput.addEventListener('input', function(){
+            state[o.id].segments[seg.key].massDescription = mdInput.value;
+            textArea.value = buildGISentence(state[o.id]);
+            autoResize(textArea);
+          });
+          mdField.appendChild(mdInput);
+          segWrap.appendChild(mdField);
+        }
+
+        giChipRow(segWrap, 'Peristalsis', GI_PERISTALSIS_OPTS,
+          function(){ return segState.peristalsis; },
+          function(v){ state[o.id].segments[seg.key].peristalsis = v; }
+        );
+
+        giChipRow(segWrap, 'Luminal contents', GI_CONTENTS_OPTS,
+          function(){ return segState.contents; },
+          function(v){ state[o.id].segments[seg.key].contents = v; }
+        );
+
+        catWrap.appendChild(segWrap);
+      });
+    }
+
+    section.appendChild(catWrap);
+  });
+
+  var extraField = document.createElement('div');
+  extraField.className = 'field';
+  extraField.style.marginTop = '6px';
+  var extraLabel = document.createElement('label');
+  extraLabel.textContent = o.extraLabel;
+  extraField.appendChild(extraLabel);
+  var extraInput = document.createElement('input');
+  extraInput.type = 'text';
+  extraInput.value = s.extra;
+  extraInput.addEventListener('input', function(){
+    state[o.id].extra = extraInput.value;
+    textArea.value = buildGISentence(state[o.id]);
+    autoResize(textArea);
+  });
+  extraField.appendChild(extraInput);
+  section.appendChild(extraField);
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 6;
+  textArea.value = buildGISentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderBladderSection(o, s, section){
+  function chipRow(labelText, options, isActive, onClick){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (isActive(opt) ? ' active' : '');
+      chip.textContent = opt.label || opt[1];
+      chip.addEventListener('click', function(){
+        onClick(opt);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  chipRow('Distension', BLADDER_DISTENSION, function(opt){ return s.distension === opt.key; }, function(opt){
+    state[o.id].distension = opt.key;
+  });
+
+  chipRow('Wall', BLADDER_WALL_OPTS, function(opt){ return !!s.wall[opt.key]; }, function(opt){
+    if (opt.key === 'normal') {
+      state[o.id].wall = { normal: true, diffuse: false, focal: false, irregular: false };
+    } else {
+      state[o.id].wall.normal = false;
+      state[o.id].wall[opt.key] = !state[o.id].wall[opt.key];
+      var anyAbnormal = state[o.id].wall.diffuse || state[o.id].wall.focal || state[o.id].wall.irregular;
+      if (!anyAbnormal) state[o.id].wall.normal = true;
+    }
+  });
+
+  chipRow('Contents', BLADDER_CONTENTS, function(opt){ return s.contents === opt.key; }, function(opt){
+    state[o.id].contents = opt.key;
+  });
+
+  chipRow('Focal findings', BLADDER_FOCAL_OPTS.map(function(p){ return { key: p[0], label: p[1] }; }), function(opt){ return !!s.focal[opt.key]; }, function(opt){
+    state[o.id].focal[opt.key] = !state[o.id].focal[opt.key];
+  });
+
+  var extraField = document.createElement('div');
+  extraField.className = 'field';
+  extraField.style.marginTop = '6px';
+  var extraLabel = document.createElement('label');
+  extraLabel.textContent = o.extraLabel;
+  extraField.appendChild(extraLabel);
+  var extraInput = document.createElement('input');
+  extraInput.type = 'text';
+  extraInput.value = s.extra;
+  extraInput.addEventListener('input', function(){
+    state[o.id].extra = extraInput.value;
+    textArea.value = buildBladderSentence(state[o.id]);
+    autoResize(textArea);
+  });
+  extraField.appendChild(extraInput);
+  section.appendChild(extraField);
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildBladderSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderLymphSection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  chipRow('Size', LYMPH_SIZE_OPTS, function(){ return s.size; }, function(v){ state[o.id].size = v; });
+
+  if (s.size === 'enlarged') {
+    var locField = document.createElement('div');
+    locField.className = 'field';
+    locField.style.marginTop = '6px';
+    var locLabel = document.createElement('label');
+    locLabel.textContent = 'Location';
+    locField.appendChild(locLabel);
+    var locInput = document.createElement('input');
+    locInput.type = 'text';
+    locInput.placeholder = 'e.g. Jejunal / mesenteric lymph node';
+    locInput.value = s.location || '';
+    locInput.addEventListener('input', function(){
+      state[o.id].location = locInput.value;
+      textArea.value = buildLymphSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    locField.appendChild(locInput);
+    section.appendChild(locField);
+
+    chipRow('Echogenicity', LYMPH_ECHO_OPTS, function(){ return s.echo; }, function(v){ state[o.id].echo = v; });
+
+    var thField = document.createElement('div');
+    thField.className = 'field';
+    thField.style.marginTop = '6px';
+    var thLabel = document.createElement('label');
+    thLabel.textContent = 'Thickness (mm)';
+    thField.appendChild(thLabel);
+    var thInput = document.createElement('input');
+    thInput.type = 'text';
+    thInput.placeholder = 'e.g. 8';
+    thInput.value = s.thickness || '';
+    thInput.addEventListener('input', function(){
+      state[o.id].thickness = thInput.value;
+      textArea.value = buildLymphSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    thField.appendChild(thInput);
+    section.appendChild(thField);
+
+    var dtField = document.createElement('div');
+    dtField.className = 'field';
+    dtField.style.marginTop = '6px';
+    var dtLabel = document.createElement('label');
+    dtLabel.textContent = 'Additional detailed description';
+    dtField.appendChild(dtLabel);
+    var dtInput = document.createElement('input');
+    dtInput.type = 'text';
+    dtInput.placeholder = 'e.g. loss of normal hilar architecture, rounded contour';
+    dtInput.value = s.detail || '';
+    dtInput.addEventListener('input', function(){
+      state[o.id].detail = dtInput.value;
+      textArea.value = buildLymphSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    dtField.appendChild(dtInput);
+    section.appendChild(dtField);
+  }
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildLymphSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderVasculatureSection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  chipRow('Appearance', VASCULATURE_APPEARANCE_OPTS, function(){ return s.appearance; }, function(v){ state[o.id].appearance = v; });
+
+  if (s.appearance === 'abnormal') {
+    chipRow('Finding', VASCULATURE_FINDING_OPTS, function(){ return s.finding; }, function(v){ state[o.id].finding = v; });
+
+    var vesField = document.createElement('div');
+    vesField.className = 'field';
+    vesField.style.marginTop = '6px';
+    var vesLabel = document.createElement('label');
+    vesLabel.textContent = 'Location';
+    vesField.appendChild(vesLabel);
+    var vesInput = document.createElement('input');
+    vesInput.type = 'text';
+    vesInput.placeholder = 'e.g. Caudal vena cava';
+    vesInput.value = s.vessel || '';
+    vesInput.addEventListener('input', function(){
+      state[o.id].vessel = vesInput.value;
+      textArea.value = buildVasculatureSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    vesField.appendChild(vesInput);
+    section.appendChild(vesField);
+
+    var dtField = document.createElement('div');
+    dtField.className = 'field';
+    dtField.style.marginTop = '6px';
+    var dtLabel = document.createElement('label');
+    dtLabel.textContent = 'Additional detailed description';
+    dtField.appendChild(dtLabel);
+    var dtInput = document.createElement('input');
+    dtInput.type = 'text';
+    dtInput.placeholder = 'e.g. hyperechoic filling defect causing partial luminal obstruction';
+    dtInput.value = s.detail || '';
+    dtInput.addEventListener('input', function(){
+      state[o.id].detail = dtInput.value;
+      textArea.value = buildVasculatureSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    dtField.appendChild(dtInput);
+    section.appendChild(dtField);
+  }
+
+  var extraField = document.createElement('div');
+  extraField.className = 'field';
+  extraField.style.marginTop = '6px';
+  var extraLabel = document.createElement('label');
+  extraLabel.textContent = o.extraLabel;
+  extraField.appendChild(extraLabel);
+  var extraInput = document.createElement('input');
+  extraInput.type = 'text';
+  extraInput.value = s.extra;
+  extraInput.addEventListener('input', function(){
+    state[o.id].extra = extraInput.value;
+    textArea.value = buildVasculatureSentence(state[o.id]);
+    autoResize(textArea);
+  });
+  extraField.appendChild(extraInput);
+  section.appendChild(extraField);
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildVasculatureSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderGenitalSection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  function textField(labelText, placeholder, getValue, setValue){
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.marginTop = '6px';
+    var fLabel = document.createElement('label');
+    fLabel.textContent = labelText;
+    field.appendChild(fLabel);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = placeholder || '';
+    input.value = getValue() || '';
+    input.addEventListener('input', function(){
+      setValue(input.value);
+      textArea.value = buildGenitalSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    field.appendChild(input);
+    section.appendChild(field);
+  }
+
+  var sexCategory = getSexCategory();
+
+  if (!sexCategory) {
+    var sexHint = document.createElement('div');
+    sexHint.style.fontSize = '12px';
+    sexHint.style.color = '#888';
+    sexHint.style.marginBottom = '8px';
+    sexHint.textContent = 'Select the patient\'s sex in Patient information above to show Prostate/Testicles or Ovaries/Uterus fields.';
+    section.appendChild(sexHint);
+  }
+
+  if (sexCategory === 'male') {
+    var prostateHeader = document.createElement('div');
+    prostateHeader.className = 'gi-segment-name';
+    prostateHeader.textContent = 'Prostate';
+    section.appendChild(prostateHeader);
+
+    chipRow('Size', PROSTATE_SIZE_OPTS, function(){ return s.prostate.size; }, function(v){ state[o.id].prostate.size = v; });
+    textField('Size (cm)', 'e.g. 3.5', function(){ return s.prostate.length; }, function(v){ state[o.id].prostate.length = v; });
+    chipRow('Margins', PROSTATE_MARGIN_OPTS, function(){ return s.prostate.margins; }, function(v){ state[o.id].prostate.margins = v; });
+    chipRow('Parenchyma', PROSTATE_PARENCHYMA_OPTS, function(){ return s.prostate.parenchyma; }, function(v){ state[o.id].prostate.parenchyma = v; });
+
+    var pAbnormal = s.prostate.size === 'enlarged' || s.prostate.margins === 'irregular'
+      || s.prostate.parenchyma === 'heterogeneous' || s.prostate.parenchyma === 'mineralization' || s.prostate.parenchyma === 'cystic';
+    if (pAbnormal) {
+      textField('Additional detailed description', 'e.g. focal hypoechoic cavitary lesion in the right lobe', function(){ return s.prostate.detail; }, function(v){ state[o.id].prostate.detail = v; });
+    }
+
+    var testiclesHeader = document.createElement('div');
+    testiclesHeader.className = 'gi-segment-name';
+    testiclesHeader.style.marginTop = '10px';
+    testiclesHeader.textContent = 'Testicles';
+    section.appendChild(testiclesHeader);
+
+    chipRow('Size', TESTICLES_SIZE_OPTS, function(){ return s.testicles.size; }, function(v){ state[o.id].testicles.size = v; });
+
+    if (s.testicles.size === 'enlarged') {
+      chipRow('Side', GENITAL_SIDE_OPTS, function(){ return s.testicles.side; }, function(v){ state[o.id].testicles.side = v; });
+      chipRow('Echogenicity', TESTICLES_ECHO_OPTS, function(){ return s.testicles.echo; }, function(v){ state[o.id].testicles.echo = v; });
+      chipRow('Margins', TESTICLES_MARGIN_OPTS, function(){ return s.testicles.margins; }, function(v){ state[o.id].testicles.margins = v; });
+      textField('Size (cm)', 'e.g. 2.1', function(){ return s.testicles.length; }, function(v){ state[o.id].testicles.length = v; });
+      textField('Additional detailed description', 'e.g. heterogeneous mass effacing normal parenchyma', function(){ return s.testicles.detail; }, function(v){ state[o.id].testicles.detail = v; });
+    }
+  } else if (sexCategory === 'female') {
+    var ovariesHeader = document.createElement('div');
+    ovariesHeader.className = 'gi-segment-name';
+    ovariesHeader.textContent = 'Ovaries';
+    section.appendChild(ovariesHeader);
+
+    chipRow('Status', OVARIES_STATUS_OPTS, function(){ return s.ovaries.status; }, function(v){ state[o.id].ovaries.status = v; });
+
+    if (s.ovaries.status === 'abnormal') {
+      chipRow('Side', GENITAL_SIDE_OPTS, function(){ return s.ovaries.side; }, function(v){ state[o.id].ovaries.side = v; });
+      chipRow('Echogenicity', OVARIES_ECHO_OPTS, function(){ return s.ovaries.echo; }, function(v){ state[o.id].ovaries.echo = v; });
+      chipRow('Follicular/cystic structures', OVARIES_FOLLICULAR_OPTS, function(){ return s.ovaries.follicular; }, function(v){ state[o.id].ovaries.follicular = v; });
+      textField('Size (cm)', 'e.g. 1.8', function(){ return s.ovaries.size; }, function(v){ state[o.id].ovaries.size = v; });
+      textField('Additional detailed description', 'e.g. thick-walled cystic structure with septations', function(){ return s.ovaries.detail; }, function(v){ state[o.id].ovaries.detail = v; });
+    }
+
+    var uterusHeader = document.createElement('div');
+    uterusHeader.className = 'gi-segment-name';
+    uterusHeader.style.marginTop = '10px';
+    uterusHeader.textContent = 'Uterus';
+    section.appendChild(uterusHeader);
+
+    chipRow('Appearance', UTERUS_APPEARANCE_OPTS, function(){ return s.uterus.appearance; }, function(v){ state[o.id].uterus.appearance = v; });
+
+    if (s.uterus.appearance === 'visualized' || s.uterus.appearance === 'stump') {
+      textField('Diameter (cm)', 'e.g. 1.5', function(){ return s.uterus.diameter; }, function(v){ state[o.id].uterus.diameter = v; });
+      chipRow('Fluid contents', UTERUS_FLUID_OPTS, function(){ return s.uterus.fluid; }, function(v){ state[o.id].uterus.fluid = v; });
+      textField('Additional detailed description', 'e.g. moderately distended, thin-walled', function(){ return s.uterus.detail; }, function(v){ state[o.id].uterus.detail = v; });
+    }
+  }
+
+  var extraField = document.createElement('div');
+  extraField.className = 'field';
+  extraField.style.marginTop = '6px';
+  var extraLabel = document.createElement('label');
+  extraLabel.textContent = o.extraLabel;
+  extraField.appendChild(extraLabel);
+  var extraInput = document.createElement('input');
+  extraInput.type = 'text';
+  extraInput.value = s.extra;
+  extraInput.addEventListener('input', function(){
+    state[o.id].extra = extraInput.value;
+    textArea.value = buildGenitalSentence(state[o.id]);
+    autoResize(textArea);
+  });
+  extraField.appendChild(extraInput);
+  section.appendChild(extraField);
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 4;
+  textArea.value = buildGenitalSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderGallbladderSection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  function textField(labelText, placeholder, getValue, setValue){
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.marginTop = '6px';
+    var fLabel = document.createElement('label');
+    fLabel.textContent = labelText;
+    field.appendChild(fLabel);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = placeholder || '';
+    input.value = getValue() || '';
+    input.addEventListener('input', function(){
+      setValue(input.value);
+      textArea.value = buildGallbladderSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    field.appendChild(input);
+    section.appendChild(field);
+  }
+
+  chipRow('Status', GALLBLADDER_STATUS_OPTS, function(){ return s.status; }, function(v){ state[o.id].status = v; });
+  textField('Wall thickness (mm)', 'e.g. 1.5', function(){ return s.thickness; }, function(v){ state[o.id].thickness = v; });
+  chipRow('Wall Echogenicity', GALLBLADDER_ECHO_OPTS, function(){ return s.echo; }, function(v){ state[o.id].echo = v; });
+  chipRow('Content', GALLBLADDER_CONTENT_OPTS, function(){ return s.content; }, function(v){ state[o.id].content = v; });
+  chipRow('Evidence of obstruction', GALLBLADDER_OBSTRUCTION_OPTS, function(){ return s.obstruction; }, function(v){ state[o.id].obstruction = v; });
+  textField('Additional notes', 'e.g. pericholecystic fluid noted', function(){ return s.detail; }, function(v){ state[o.id].detail = v; });
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildGallbladderSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderBiliarySection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  function textField(labelText, placeholder, getValue, setValue){
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.marginTop = '6px';
+    var fLabel = document.createElement('label');
+    fLabel.textContent = labelText;
+    field.appendChild(fLabel);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = placeholder || '';
+    input.value = getValue() || '';
+    input.addEventListener('input', function(){
+      setValue(input.value);
+      textArea.value = buildBiliarySentence(state[o.id]);
+      autoResize(textArea);
+    });
+    field.appendChild(input);
+    section.appendChild(field);
+  }
+
+  chipRow('Status', BILIARY_STATUS_OPTS, function(){ return s.status; }, function(v){ state[o.id].status = v; });
+  textField('Duct diameter (mm)', 'e.g. 2.5', function(){ return s.diameter; }, function(v){ state[o.id].diameter = v; });
+  chipRow('Duct wall', BILIARY_WALL_OPTS, function(){ return s.wall; }, function(v){ state[o.id].wall = v; });
+  chipRow('Content', BILIARY_CONTENT_OPTS, function(){ return s.content; }, function(v){ state[o.id].content = v; });
+  chipRow('Evidence of obstruction', BILIARY_OBSTRUCTION_OPTS, function(){ return s.obstruction; }, function(v){ state[o.id].obstruction = v; });
+  textField('Additional notes', 'e.g. cystic duct tortuous', function(){ return s.detail; }, function(v){ state[o.id].detail = v; });
+
+  var mdpRow = document.createElement('div');
+  mdpRow.style.display = 'flex';
+  mdpRow.style.alignItems = 'center';
+  mdpRow.style.gap = '8px';
+  mdpRow.style.marginTop = '10px';
+  mdpRow.style.marginBottom = '6px';
+
+  var mdpNameEl = document.createElement('div');
+  mdpNameEl.className = 'gi-segment-name';
+  mdpNameEl.style.marginBottom = '0';
+  mdpNameEl.textContent = 'Major duodenal papilla (MDP)';
+  mdpRow.appendChild(mdpNameEl);
+
+  var mdpToggleBtn = document.createElement('button');
+  mdpToggleBtn.type = 'button';
+  mdpToggleBtn.className = 'chip' + (s.mdpScanned ? ' active' : '');
+  mdpToggleBtn.style.fontSize = '11px';
+  mdpToggleBtn.style.padding = '2px 9px';
+  mdpToggleBtn.textContent = s.mdpScanned ? 'Scanned' : 'Not scanned';
+  mdpToggleBtn.addEventListener('click', function(){
+    state[o.id].mdpScanned = !state[o.id].mdpScanned;
+    renderOrgans();
+  });
+  mdpRow.appendChild(mdpToggleBtn);
+
+  section.appendChild(mdpRow);
+
+  if (s.mdpScanned) {
+    chipRow('Status', MDP_STATUS_OPTS, function(){ return s.mdpStatus; }, function(v){ state[o.id].mdpStatus = v; });
+    textField('Size (mm)', 'e.g. 3', function(){ return s.mdpSize; }, function(v){ state[o.id].mdpSize = v; });
+    if (s.mdpStatus === 'abnormal') {
+      textField('Additional notes', 'e.g. thickened, irregular contour', function(){ return s.mdpDetail; }, function(v){ state[o.id].mdpDetail = v; });
+    }
+  }
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildBiliarySentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+function renderUretersSection(o, s, section){
+  function chipRow(labelText, options, getValue, setValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValue() === opt.v ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        setValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  function textField(labelText, placeholder, getValue, setValue){
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.marginTop = '6px';
+    var fLabel = document.createElement('label');
+    fLabel.textContent = labelText;
+    field.appendChild(fLabel);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = placeholder || '';
+    input.value = getValue() || '';
+    input.addEventListener('input', function(){
+      setValue(input.value);
+      textArea.value = buildUretersSentence(state[o.id]);
+      autoResize(textArea);
+    });
+    field.appendChild(input);
+    section.appendChild(field);
+  }
+
+  function multiChipRow(labelText, options, getValues, toggleValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValues().indexOf(opt.v) !== -1 ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        toggleValue(opt.v);
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  chipRow('Visible', URETER_VISIBLE_OPTS, function(){ return s.visible; }, function(v){ state[o.id].visible = v; });
+
+  if (s.visible === 'yes') {
+    ['left', 'right'].forEach(function(sideKey){
+      var sideLabel = sideKey === 'left' ? 'Left' : 'Right';
+      var sideState = s[sideKey];
+
+      var sideRow = document.createElement('div');
+      sideRow.style.display = 'flex';
+      sideRow.style.alignItems = 'center';
+      sideRow.style.gap = '8px';
+      sideRow.style.marginTop = '10px';
+      sideRow.style.marginBottom = '6px';
+
+      var sideNameEl = document.createElement('div');
+      sideNameEl.className = 'gi-segment-name';
+      sideNameEl.style.marginBottom = '0';
+      sideNameEl.textContent = sideLabel + ' ureter';
+      sideRow.appendChild(sideNameEl);
+
+      var sideToggleBtn = document.createElement('button');
+      sideToggleBtn.type = 'button';
+      sideToggleBtn.className = 'chip' + (sideState.dilated ? ' active' : '');
+      sideToggleBtn.style.fontSize = '11px';
+      sideToggleBtn.style.padding = '2px 9px';
+      sideToggleBtn.textContent = sideState.dilated ? 'Dilated' : 'Not dilated';
+      sideToggleBtn.addEventListener('click', function(){
+        state[o.id][sideKey].dilated = !state[o.id][sideKey].dilated;
+        renderOrgans();
+      });
+      sideRow.appendChild(sideToggleBtn);
+
+      section.appendChild(sideRow);
+
+      if (sideState.dilated) {
+        textField('Diameter (mm)', 'e.g. 3', function(){ return sideState.diameter; }, function(v){ state[o.id][sideKey].diameter = v; });
+        multiChipRow('Content', URETER_CONTENT_OPTS, function(){ return sideState.content; }, function(v){
+          var arr = state[o.id][sideKey].content;
+          var idx = arr.indexOf(v);
+          if (idx === -1) arr.push(v); else arr.splice(idx, 1);
+        });
+        textField('Additional notes', 'e.g. proximal dilation noted', function(){ return sideState.detail; }, function(v){ state[o.id][sideKey].detail = v; });
+      }
+    });
+  }
+
+  var textArea = document.createElement('textarea');
+  textArea.className = 'organ-text';
+  textArea.rows = 3;
+  textArea.value = buildUretersSentence(s);
+  textArea.dataset.organId = o.id;
+  textArea.addEventListener('input', function(){
+    s.customText = textArea.value;
+    autoResize(textArea);
+  });
+  section.appendChild(textArea);
+}
+
+var organsEl = document.getElementById('organs');
+
+function renderOrgans(){
+  organsEl.innerHTML = '';
+  ORGANS.forEach(function(o){
+    if (!organIncluded[o.id]) return;
+    var s = state[o.id];
+    var section = document.createElement('div');
+    section.style.marginBottom = '18px';
+    section.style.paddingBottom = '14px';
+    section.style.borderBottom = '1px solid #f0f0f0';
+
+    var header = document.createElement('div');
+    header.className = 'organ-header';
+    var h3 = document.createElement('div');
+    h3.textContent = o.name;
+    h3.style.fontSize = '13px';
+    h3.style.fontWeight = '600';
+    header.appendChild(h3);
+    var normalBtn = document.createElement('button');
+    normalBtn.className = 'organ-normal-btn';
+    normalBtn.textContent = 'Set normal';
+    normalBtn.addEventListener('click', function(){
+      if (o.custom === 'bladder') {
+        state[o.id] = freshBladderState();
+      } else if (o.custom === 'gi') {
+        var keepExpanded = state[o.id].expanded;
+        var keepSegIncluded = state[o.id].segmentIncluded;
+        state[o.id] = freshGIState();
+        state[o.id].expanded = keepExpanded;
+        state[o.id].segmentIncluded = keepSegIncluded;
+      } else if (o.custom === 'lymph') {
+        state[o.id] = freshLymphState();
+      } else if (o.custom === 'vasculature') {
+        state[o.id] = freshVasculatureState();
+      } else if (o.custom === 'genital') {
+        state[o.id] = freshGenitalState();
+      } else if (o.custom === 'gallbladder') {
+        state[o.id] = freshGallbladderState();
+      } else if (o.custom === 'biliary') {
+        var keepMdpScanned = state[o.id].mdpScanned;
+        state[o.id] = freshBiliaryState();
+        state[o.id].mdpScanned = keepMdpScanned;
+      } else if (o.custom === 'ureters') {
+        state[o.id] = freshUretersState();
+      } else {
+        var keepSide = o.sides ? state[o.id].activeSide : null;
+        state[o.id] = o.sides ? freshSidedOrganState() : freshOrganState();
+        if (keepSide) state[o.id].activeSide = keepSide;
+      }
+      renderOrgans();
+    });
+    header.appendChild(normalBtn);
+    section.appendChild(header);
+
+    if (o.custom === 'bladder') {
+      renderBladderSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'gi') {
+      renderGISection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'lymph') {
+      renderLymphSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'vasculature') {
+      renderVasculatureSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'genital') {
+      renderGenitalSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'gallbladder') {
+      renderGallbladderSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'biliary') {
+      renderBiliarySection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.custom === 'ureters') {
+      renderUretersSection(o, s, section);
+      organsEl.appendChild(section);
+      return;
+    }
+
+    if (o.sides) {
+      var sideRow = document.createElement('div');
+      sideRow.className = 'attr-row';
+      var sideLabel = document.createElement('span');
+      sideLabel.className = 'attr-label';
+      sideLabel.textContent = 'Side';
+      sideRow.appendChild(sideLabel);
+      var sideChipWrap = document.createElement('div');
+      sideChipWrap.className = 'chip-wrap';
+      [['left','Left'],['right','Right']].forEach(function(pair){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (s.activeSide === pair[0] ? ' active' : '');
+        chip.textContent = pair[1];
+        chip.addEventListener('click', function(){
+          state[o.id].activeSide = pair[0];
+          renderOrgans();
+        });
+        sideChipWrap.appendChild(chip);
+      });
+      sideRow.appendChild(sideChipWrap);
+      section.appendChild(sideRow);
+    }
+
+    var activeState = o.sides ? s[s.activeSide] : s;
+
+    ['size','echo','margins','dist'].forEach(function(attrKey){
+      var def = ATTR_DEFS[attrKey];
+      var row = document.createElement('div');
+      row.className = 'attr-row';
+      var label = document.createElement('span');
+      label.className = 'attr-label';
+      label.textContent = def.label;
+      row.appendChild(label);
+      var options = attrKey === 'echo' ? getEchoOptionsFor(o) : (attrKey === 'size' ? getSizeOptionsFor(o) : def.options);
+      var chipWrap = document.createElement('div');
+      chipWrap.className = 'chip-wrap';
+      options.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (activeState[attrKey] === opt.v ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id])[attrKey] = opt.v;
+          renderOrgans();
+        });
+        chipWrap.appendChild(chip);
+      });
+      row.appendChild(chipWrap);
+      section.appendChild(row);
+
+      if (attrKey === 'size' && o.sizeDetailField && o.sizeDetailField.showWhen.indexOf(activeState.size) !== -1) {
+        var sdf = o.sizeDetailField;
+        var sdField = document.createElement('div');
+        sdField.className = 'field';
+        sdField.style.marginTop = '6px';
+        var sdLabel = document.createElement('label');
+        sdLabel.textContent = sdf.label + ' (' + sdf.unit + ')';
+        sdField.appendChild(sdLabel);
+        var sdInput = document.createElement('input');
+        sdInput.type = 'text';
+        sdInput.placeholder = 'e.g. 1.2';
+        if (!activeState.measurements) activeState.measurements = {};
+        sdInput.value = activeState.measurements[sdf.key] || '';
+        sdInput.addEventListener('input', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          if (!target.measurements) target.measurements = {};
+          target.measurements[sdf.key] = sdInput.value;
+          textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, target), getEchoOptionsFor(o));
+          autoResize(textArea);
+        });
+        sdField.appendChild(sdInput);
+        section.appendChild(sdField);
+      }
+    });
+
+    if (activeState.dist === 'focal' || activeState.dist === 'diffuse') {
+      var lesionField = document.createElement('div');
+      lesionField.className = 'field';
+      lesionField.style.marginTop = '6px';
+      var lesionLabel = document.createElement('label');
+      lesionLabel.textContent = 'Additional detailed description';
+      lesionField.appendChild(lesionLabel);
+      var lesionInput = document.createElement('input');
+      lesionInput.type = 'text';
+      lesionInput.placeholder = 'e.g. 2 cm well-defined hypoechoic nodule in the left lateral lobe';
+      lesionInput.value = activeState.lesionDetail || '';
+      lesionInput.addEventListener('input', function(){
+        (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id]).lesionDetail = lesionInput.value;
+        textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
+        autoResize(textArea);
+      });
+      lesionField.appendChild(lesionInput);
+      section.appendChild(lesionField);
+    }
+
+    var measurementsDefs = getMeasurementsFor(o);
+    if (measurementsDefs && measurementsDefs.length) {
+      var measGrid = document.createElement('div');
+      measGrid.className = 'grid';
+      measGrid.style.marginTop = '6px';
+      measurementsDefs.forEach(function(m){
+        if (!activeState.measurements) activeState.measurements = {};
+        var mField = document.createElement('div');
+        mField.className = 'field';
+        var mLabel = document.createElement('label');
+        mLabel.textContent = m.label + ' (' + m.unit + ')' + (o.sides ? ' — ' + (s.activeSide === 'left' ? 'left' : 'right') : '');
+        mField.appendChild(mLabel);
+        var mInput = document.createElement('input');
+        mInput.type = 'text';
+        mInput.placeholder = 'e.g. 0.4';
+        mInput.value = activeState.measurements[m.key] || '';
+        mInput.addEventListener('input', function(){
+          (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id]).measurements[m.key] = mInput.value;
+          textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
+          autoResize(textArea);
+        });
+        mField.appendChild(mInput);
+        measGrid.appendChild(mField);
+      });
+      section.appendChild(measGrid);
+    }
+
+    var extraField = document.createElement('div');
+    extraField.className = 'field';
+    extraField.style.marginTop = '6px';
+    var extraLabel = document.createElement('label');
+    extraLabel.textContent = o.extraLabel;
+    extraField.appendChild(extraLabel);
+    var extraInput = document.createElement('input');
+    extraInput.type = 'text';
+    extraInput.value = s.extra;
+    extraInput.addEventListener('input', function(){
+      state[o.id].extra = extraInput.value;
+      textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
+      autoResize(textArea);
+    });
+    extraField.appendChild(extraInput);
+    section.appendChild(extraField);
+
+    var textArea = document.createElement('textarea');
+    textArea.className = 'organ-text';
+    textArea.rows = o.sides ? 4 : 2;
+    textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, s, getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
+    textArea.dataset.organId = o.id;
+    textArea.addEventListener('input', function(){
+      s.customText = textArea.value;
+      autoResize(textArea);
+    });
+    section.appendChild(textArea);
+
+    organsEl.appendChild(section);
+  });
+
+  document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
+}
+
+document.getElementById('allNormalBtn').addEventListener('click', function(){
+  ORGANS.forEach(function(o){
+    state[o.id] = o.custom === 'bladder' ? freshBladderState() :
+      (o.custom === 'gi' ? freshGIState() :
+      (o.custom === 'lymph' ? freshLymphState() :
+      (o.custom === 'vasculature' ? freshVasculatureState() :
+      (o.custom === 'genital' ? freshGenitalState() :
+      (o.custom === 'gallbladder' ? freshGallbladderState() :
+      (o.custom === 'biliary' ? freshBiliaryState() :
+      (o.custom === 'ureters' ? freshUretersState() :
+      (o.sides ? freshSidedOrganState() : freshOrganState()))))))));
+  });
+  renderOrgans();
+});
+
+document.getElementById('resetBtn').addEventListener('click', function(){
+  if (!confirm('Clear all fields?')) return;
+  document.querySelectorAll('.card input[type=text], .card input[type=date], .card textarea').forEach(function(el){ el.value = ''; });
+  document.querySelectorAll('.card select').forEach(function(el){ el.value = ''; });
+  ORGANS.forEach(function(o){
+    organIncluded[o.id] = true;
+    if (o.custom === 'bladder') {
+      state[o.id] = freshBladderNAState();
+    } else if (o.custom === 'gi') {
+      state[o.id] = freshGIStateNA();
+    } else if (o.custom === 'lymph') {
+      state[o.id] = freshLymphNAState();
+    } else if (o.custom === 'vasculature') {
+      state[o.id] = freshVasculatureNAState();
+    } else if (o.custom === 'genital') {
+      state[o.id] = freshGenitalNAState();
+    } else if (o.custom === 'gallbladder') {
+      state[o.id] = freshGallbladderNAState();
+    } else if (o.custom === 'biliary') {
+      state[o.id] = freshBiliaryNAState();
+    } else if (o.custom === 'ureters') {
+      state[o.id] = freshUretersNAState();
+    } else if (o.sides) {
+      state[o.id] = { activeSide: 'left',
+        left: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {} },
+        right: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {} },
+        extra: '' };
+    } else {
+      state[o.id] = { size: 'na', echo: 'na', margins: 'na', dist: 'na', extra: '', measurements: {} };
+    }
+  });
+  renderOrganToggle();
+  renderOrgans();
+});
+
+document.getElementById('printBtn').addEventListener('click', function(){
+  var headerEl = document.getElementById('printHeader');
+  var fields = [
+    ['Client', document.getElementById('f_client').value],
+    ['Patient', document.getElementById('f_patient').value],
+    ['Species', document.getElementById('f_species').value],
+    ['Breed', document.getElementById('f_breed').value],
+    ['Sex', document.getElementById('f_sex').value],
+    ['Age / DOB', document.getElementById('f_age').value],
+    ['Exam date', document.getElementById('f_date').value]
+  ];
+  headerEl.innerHTML = fields.map(function(f){
+    return '<div><strong>' + f[0] + ':</strong> ' + (f[1] || '—') + '</div>';
+  }).join('');
+
+  document.getElementById('printHistory').textContent = document.getElementById('f_history').value || '—';
+
+  var findingsEl = document.getElementById('printFindings');
+  findingsEl.innerHTML = '';
+  document.querySelectorAll('#organs textarea').forEach(function(ta){
+    if (!ta.value.trim()) return;
+    var matchedOrgan = ORGANS.filter(function(o){ return o.id === ta.dataset.organId; })[0];
+    var organName = matchedOrgan ? matchedOrgan.name : '';
+    var div = document.createElement('div');
+    div.className = 'print-organ';
+    div.innerHTML = '<div class="name">' + organName + '</div><div class="text">' + ta.value + '</div>';
+    findingsEl.appendChild(div);
+  });
+
+  document.getElementById('printRecs').textContent = document.getElementById('f_recs').value || '—';
+
+  window.print();
+});
+
+function buildReportText(){
+  var lines = [];
+  lines.push('Abdominal Ultrasound Report');
+  lines.push('');
+
+  lines.push('Findings');
+  document.querySelectorAll('#organs textarea').forEach(function(ta){
+    if (!ta.value.trim()) return;
+    var matchedOrgan = ORGANS.filter(function(o){ return o.id === ta.dataset.organId; })[0];
+    var organName = matchedOrgan ? matchedOrgan.name : '';
+    lines.push('## ' + organName);
+    lines.push(ta.value);
+    lines.push('');
+  });
+
+  lines.push('Comments');
+  lines.push(document.getElementById('f_recs').value || '—');
+
+  return lines.join('\n');
+}
+
+function copyTextToClipboard(text){
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise(function(resolve, reject){
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      resolve();
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+document.getElementById('copyBtn').addEventListener('click', function(){
+  var btn = document.getElementById('copyBtn');
+  var originalLabel = btn.textContent;
+  var text = buildReportText();
+  copyTextToClipboard(text).then(function(){
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = originalLabel; }, 1500);
+  }).catch(function(){
+    btn.textContent = 'Copy failed';
+    setTimeout(function(){ btn.textContent = originalLabel; }, 1500);
+  });
+});
+
+function getPatientFields(){
+  return {
+    case_number: document.getElementById('f_case').value,
+    client_name: document.getElementById('f_client').value,
+    patient_name: document.getElementById('f_patient').value,
+    species: document.getElementById('f_species').value,
+    breed: document.getElementById('f_breed').value,
+    sex: document.getElementById('f_sex').value,
+    exam_date: document.getElementById('f_date').value,
+    history: document.getElementById('f_history').value,
+    recs: document.getElementById('f_recs').value
+  };
+}
+
+document.getElementById('saveCloudBtn').addEventListener('click', function(){
+  var btn = document.getElementById('saveCloudBtn');
+  var originalLabel = btn.textContent;
+  btn.textContent = 'Saving...';
+
+  var patientFields = getPatientFields();
+
+  var payload = {
+    case_number: patientFields.case_number,
+    client_name: patientFields.client_name,
+    patient_name: patientFields.patient_name,
+    species: patientFields.species,
+    breed: patientFields.breed,
+    sex: patientFields.sex,
+    exam_date: patientFields.exam_date ? patientFields.exam_date : null,
+    report_text: buildReportText(),
+    report_data: JSON.stringify({
+      patientFields: patientFields,
+      state: state,
+      organIncluded: organIncluded
+    })
+  };
+
+  sbClient.from('reports').insert([payload]).then(function(result){
+    if (result.error) {
+      btn.textContent = 'Save failed';
+      console.error(result.error);
+    } else {
+      btn.textContent = 'Saved!';
+    }
+    setTimeout(function(){ btn.textContent = originalLabel; }, 1500);
+  });
+});
+
+function loadReportIntoForm(report){
+  var data = {};
+  try { data = JSON.parse(report.report_data || '{}'); } catch (e) { data = {}; }
+
+  if (data.patientFields) {
+    document.getElementById('f_case').value = data.patientFields.case_number || '';
+    document.getElementById('f_client').value = data.patientFields.client_name || '';
+    document.getElementById('f_patient').value = data.patientFields.patient_name || '';
+    document.getElementById('f_species').value = data.patientFields.species || '';
+    document.getElementById('f_breed').value = data.patientFields.breed || '';
+    document.getElementById('f_sex').value = data.patientFields.sex || '';
+    document.getElementById('f_date').value = data.patientFields.exam_date || '';
+    document.getElementById('f_history').value = data.patientFields.history || '';
+    document.getElementById('f_recs').value = data.patientFields.recs || '';
+  }
+
+  if (data.organIncluded) {
+    Object.keys(organIncluded).forEach(function(id){
+      organIncluded[id] = data.organIncluded.hasOwnProperty(id) ? data.organIncluded[id] : true;
+    });
+  }
+
+  if (data.state) {
+    Object.keys(state).forEach(function(id){
+      if (data.state.hasOwnProperty(id)) {
+        state[id] = data.state[id];
+      }
+    });
+  }
+
+  renderOrganToggle();
+  renderOrgans();
+}
+
+function renderCloudList(reports){
+  var listEl = document.getElementById('cloudList');
+  if (!reports.length) {
+    listEl.textContent = 'No matching reports found.';
+    return;
+  }
+  listEl.innerHTML = '';
+  reports.forEach(function(r){
+    var row = document.createElement('div');
+    row.className = 'cloud-row';
+    var label = document.createElement('div');
+    var caseStr = r.case_number ? ('Case# ' + r.case_number + ' — ') : '';
+    var examDateStr = r.exam_date ? r.exam_date : (r.created_at ? new Date(r.created_at).toLocaleDateString() : '');
+    label.textContent = caseStr + (r.patient_name || '(no patient name)') + ' — ' + (r.client_name || '') + ' (' + examDateStr + ')';
+    row.appendChild(label);
+    var loadBtn = document.createElement('button');
+    loadBtn.textContent = 'Load';
+    loadBtn.addEventListener('click', function(){
+      loadReportIntoForm(r);
+      document.getElementById('cloudModal').classList.remove('open');
+    });
+    row.appendChild(loadBtn);
+    listEl.appendChild(row);
+  });
+}
+
+function fetchCloudReports(searchTerm){
+  document.getElementById('cloudList').textContent = 'Loading...';
+  var query = sbClient.from('reports').select('*');
+  if (searchTerm && searchTerm.trim()) {
+    query = query.ilike('case_number', '%' + searchTerm.trim() + '%');
+  }
+  query.order('exam_date', { ascending: false }).limit(50).then(function(result){
+    if (result.error) {
+      document.getElementById('cloudList').textContent = 'Failed to load: ' + result.error.message;
+      return;
+    }
+    renderCloudList(result.data || []);
+  });
+}
+
+document.getElementById('loadCloudBtn').addEventListener('click', function(){
+  var modal = document.getElementById('cloudModal');
+  modal.classList.add('open');
+  document.getElementById('cloudSearchInput').value = '';
+  fetchCloudReports('');
+});
+
+document.getElementById('cloudSearchInput').addEventListener('input', function(){
+  fetchCloudReports(document.getElementById('cloudSearchInput').value);
+});
+
+document.getElementById('cloudModalClose').addEventListener('click', function(){
+  document.getElementById('cloudModal').classList.remove('open');
+});
+
+document.getElementById('f_species').addEventListener('change', function(){
+  renderOrgans();
+});
+
+document.getElementById('f_sex').addEventListener('change', function(){
+  renderOrgans();
+});
+
+renderOrganToggle();
+renderOrgans();
+</script>
+
+</body>
+</html>
