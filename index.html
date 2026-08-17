@@ -116,6 +116,146 @@
   .organ-collapse-btn:hover { background: #eee; }
   .organ-collapse-btn.collapsed { transform: rotate(-90deg); }
   .organ-header { display: flex; align-items: center; }
+  .warning-banner {
+    font-size: 15px;
+    font-weight: 700;
+    color: #c0392b;
+    background: #e6e6e6;
+    border: 1px solid #d0d0d0;
+    border-left: 4px solid #c0392b;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+  .feedback-fab {
+    position: fixed;
+    right: 0;
+    top: 42%;
+    z-index: 900;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 14px 7px;
+    border: none;
+    border-radius: 8px 0 0 8px;
+    background: #1a1a1a;
+    color: #ffd633;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    box-shadow: -2px 2px 10px rgba(0,0,0,0.25);
+    transition: background 0.15s ease, padding 0.15s ease;
+  }
+  .feedback-fab:hover { background: #000; padding-right: 10px; }
+
+  .admin-fb-btn {
+    color: #c0392b !important;
+    background: #e6e6e6 !important;
+    border: 1px solid #c9c9c9 !important;
+    font-weight: 700 !important;
+  }
+  .admin-fb-btn:hover { background: #dcdcdc !important; }
+
+  .fb-delete-btn {
+    padding: 4px 10px;
+    border: 1px solid #e0b4b0;
+    border-radius: 6px;
+    background: #fdecea;
+    color: #c0392b;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .fb-delete-btn:hover { background: #f9dcd8; }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px;
+    width: 560px;
+    max-width: 94vw;
+    max-height: 84vh;
+    overflow-y: auto;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.20);
+  }
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .modal-head h2 { margin: 0; font-size: 16px; }
+  .modal-close {
+    border: none;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: #888;
+  }
+  .fb-row { margin-bottom: 12px; }
+  .fb-row > label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 5px;
+  }
+  #fbMessage { width: 100%; font-size: 14px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
+  .fb-note { font-size: 11.5px; color: #999; margin: 4px 0 0; line-height: 1.5; }
+  .fb-status-msg { font-size: 13px; margin: 10px 0 0; }
+
+  .fb-item {
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #fcfcfc;
+  }
+  .fb-item-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
+  .fb-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #eee;
+    color: #444;
+  }
+  .fb-badge.sev-high { background: #fdecea; color: #c0392b; }
+  .fb-badge.sev-mid { background: #fff4e0; color: #a86612; }
+  .fb-badge.sev-low { background: #eef3ea; color: #4d6b3a; }
+  .fb-badge.cat-bug { background: #fdecea; color: #c0392b; }
+  .fb-badge.cat-feature { background: #eaf1ff; color: #1a4d99; }
+  .fb-badge.st-new { background: #ffe9e9; color: #b03030; }
+  .fb-badge.st-doing { background: #fff4e0; color: #a86612; }
+  .fb-badge.st-done { background: #e7f4e9; color: #2e7d3a; }
+  .fb-item-msg { font-size: 13.5px; white-space: pre-wrap; margin: 0 0 8px; line-height: 1.55; }
+  .fb-item-meta { font-size: 11.5px; color: #888; line-height: 1.6; margin-bottom: 8px; }
+  .fb-item-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fb-item-actions select { width: auto; font-size: 12px; padding: 4px 8px; }
+  .fb-item-actions input {
+    flex: 1;
+    min-width: 160px;
+    font-size: 12px;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  .fb-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
   .print-view { display: none; }
 
   #loginScreen {
@@ -326,15 +466,55 @@
   </div>
 </div>
 
+<div id="feedbackModal" class="modal-overlay no-print">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-head">
+      <h2>回報問題 / 建議</h2>
+      <button class="modal-close" id="feedbackModalClose">&times;</button>
+    </div>
+    <div class="fb-row">
+      <label>分類</label>
+      <div class="chip-wrap" id="fbCategoryChips"></div>
+    </div>
+    <div class="fb-row">
+      <label>嚴重程度</label>
+      <div class="chip-wrap" id="fbSeverityChips"></div>
+    </div>
+    <div class="fb-row">
+      <label>問題描述 <span style="color:#c0392b;">*</span></label>
+      <textarea id="fbMessage" rows="5" placeholder="請描述遇到的狀況，或想要的功能。越具體越好，例如：在哪個臟器、按了什麼、預期是什麼、實際是什麼。"></textarea>
+      <p class="fb-note">送出時會自動附上你的帳號、時間、目前的病例號與瀏覽器資訊，不需要另外填寫。</p>
+    </div>
+    <button class="action" id="fbSubmitBtn" style="width:100%;">送出回報</button>
+    <p id="fbStatusMsg" class="fb-status-msg" style="display:none;"></p>
+  </div>
+</div>
+
+<div id="adminFeedbackModal" class="modal-overlay no-print">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Feedback 管理</h2>
+      <button class="modal-close" id="adminFeedbackClose">&times;</button>
+    </div>
+    <div class="fb-filter-bar" id="fbFilterChips"></div>
+    <div id="adminFeedbackList" style="font-size:13px; color:#777;">Loading...</div>
+  </div>
+</div>
+
 <div id="appContent" style="display:none;">
+
+<button class="feedback-fab no-print" id="feedbackFab">💬 Feedback</button>
 
 <div class="wrap no-print">
   <div class="topbar">
     <span id="userEmailLabel"></span>
+    <button class="action secondary admin-fb-btn" id="adminFeedbackBtn" style="padding:4px 10px; font-size:12px; display:none;">Feedback 管理</button>
     <button class="action secondary" id="signOutBtn" style="padding:4px 10px; font-size:12px;">Sign out</button>
   </div>
   <h1>Abdominal Ultrasound Report</h1>
   <p class="subtitle">Click the buttons in each organ section to auto-generate a description. Edit the text freely afterward. Use "Preview &amp; print" when finished.</p>
+
+  <p class="warning-banner">同一個敘述框的內容，請先把上面按鈕都選擇完，且數值都輸入完，再手動修改文字。<br>先修改一部分文字，再回去點按鈕，會強制跳回原本的選項</p>
 
   <div class="toolbar">
     <button class="action" id="printBtn">Preview &amp; print</button>
@@ -370,6 +550,7 @@
         </select>
       </div>
       <div class="field"><label>Age / DOB</label><input type="text" id="f_age"></div>
+      <div class="field"><label>Patient status</label><input type="text" id="f_status"></div>
       <div class="field"><label>Exam date</label><input type="date" id="f_date"></div>
     </div>
     <div class="field">
@@ -413,10 +594,16 @@ var SUPABASE_URL = 'https://bntockmgymwwyexiknow.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_d_V44IXLVDLtf-WZu1JeUA_r0kPUl6q';
 var sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+var ADMIN_EMAILS = ['b01609036@gmail.com'];
+var currentUserEmail = '';
+
 function showApp(session){
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appContent').style.display = '';
-  document.getElementById('userEmailLabel').textContent = session && session.user ? session.user.email : '';
+  currentUserEmail = session && session.user ? session.user.email : '';
+  document.getElementById('userEmailLabel').textContent = currentUserEmail;
+  document.getElementById('adminFeedbackBtn').style.display =
+    ADMIN_EMAILS.indexOf(currentUserEmail) !== -1 ? '' : 'none';
   // Textareas were sized while appContent was hidden (display:none), so their
   // computed scrollHeight was 0 at that time. Re-run autoResize now that the
   // content is actually visible and laid out, so boxes display at full height
@@ -487,9 +674,9 @@ var ATTR_DEFS = {
     { v: 'mixed', t: 'Mixed', frag: 'with heterogeneous parenchymal echogenicity' }
   ]},
   margins: { label: 'Margins', options: [
-    { v: 'na', t: 'N/A', frag: '' },
-    { v: 'smooth', t: 'Smooth', frag: 'Margins are smooth and well defined.' },
-    { v: 'irregular', t: 'Irregular', frag: 'Margins are irregular.' }
+    { v: 'na', t: 'N/A', adj: '' },
+    { v: 'smooth', t: 'Smooth', adj: 'smooth and well defined' },
+    { v: 'irregular', t: 'Irregular', adj: 'irregular' }
   ]},
   dist: { label: 'Distribution', options: [
     { v: 'na', t: 'N/A', frag: '' },
@@ -502,14 +689,37 @@ var ATTR_DEFS = {
 var HOMOHETERO_ECHO_OPTIONS = [
   { v: 'na', t: 'N/A', frag: '' },
   { v: 'normal', t: 'Normal', frag: 'with normal parenchymal echogenicity' },
+  { v: 'hyper', t: 'Hyperechoic', frag: 'with diffusely hyperechoic parenchyma' },
+  { v: 'hypo', t: 'Hypoechoic', frag: 'with diffusely hypoechoic parenchyma' },
   { v: 'homogeneous', t: 'Homogeneous', frag: 'with homogeneous echotexture' },
   { v: 'heterogeneous', t: 'Heterogeneous', frag: 'with heterogeneous echotexture' }
+];
+
+var LIVER_SPLEEN_MARGINS_OPTIONS = [
+  { v: 'na', t: 'N/A', adj: '' },
+  { v: 'smooth', t: 'Smooth', adj: 'smooth and well defined' },
+  { v: 'irregular', t: 'Irregular', adj: 'irregular' },
+  { v: 'sharp', t: 'Sharp', adj: 'sharp' },
+  { v: 'rounded', t: 'Rounded', adj: 'rounded' }
 ];
 
 var PANCREAS_SIZE_OPTIONS = [
   { v: 'na', t: 'N/A', frag: '' },
   { v: 'normal', t: 'Normal', frag: 'normal in size' },
   { v: 'enlarged', t: 'Enlarged', frag: 'diffusely enlarged' }
+];
+
+var PANCREAS_REGION_OPTIONS = [
+  { v: 'left', t: 'Left', frag: 'left limb' },
+  { v: 'right', t: 'Right', frag: 'right limb' },
+  { v: 'body', t: 'Body', frag: 'body' }
+];
+
+var PERI_PANCREATIC_FAT_OPTIONS = [
+  { v: 'na', t: 'N/A', frag: '' },
+  { v: 'normal', t: 'Normal', frag: 'Peri-pancreatic fat is normal in echogenicity.' },
+  { v: 'hyper', t: 'Hyperechoic', frag: 'Peri-pancreatic fat is hyperechoic.' },
+  { v: 'hypo', t: 'Hypoechoic', frag: 'Peri-pancreatic fat is hypoechoic.' }
 ];
 
 var GI_CATEGORIES = [
@@ -541,7 +751,8 @@ var GI_WALL_LAYERING_OPTS = [
 ];
 var GI_LAYER_PATTERN_OPTS = [
   { v: 'proportionate', t: 'Proportionate' },
-  { v: 'disproportionate', t: 'Disproportionate' }
+  { v: 'focal', t: 'Focal Thickening' },
+  { v: 'diffuse', t: 'Diffuse Thickening' }
 ];
 var GI_LAYER_OPTS = [
   { key: 'mucosa', label: 'Mucosa' },
@@ -727,10 +938,12 @@ var URETER_CONTENT_OPTS = [
 ];
 
 var ORGANS = [
-  { id: 'liver', name: 'Liver', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS },
+  { id: 'liver', name: 'Liver', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    marginsOptions: LIVER_SPLEEN_MARGINS_OPTIONS, multiEcho: true, multiMargins: true },
   { id: 'gallbladder', name: 'Gallbladder', custom: 'gallbladder' },
   { id: 'biliary', name: 'Biliary tract', custom: 'biliary' },
   { id: 'spleen', name: 'Spleen', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    marginsOptions: LIVER_SPLEEN_MARGINS_OPTIONS, multiEcho: true, multiMargins: true,
     sizeDetailField: { key: 'hilumThickness', label: 'Hilum thickness', unit: 'cm', showWhen: ['na', 'normal', 'enlarged', 'small'] }
   },
   { id: 'adrenals', name: 'Adrenal glands', extraLabel: 'Additional notes', sides: true,
@@ -756,10 +969,15 @@ var ORGANS = [
   { id: 'ureters', name: 'Ureters', custom: 'ureters' },
   { id: 'bladder', name: 'Urinary bladder', extraLabel: 'Additional notes', custom: 'bladder' },
   { id: 'pancreas', name: 'Pancreas', extraLabel: 'Additional notes', echoOptions: HOMOHETERO_ECHO_OPTIONS,
+    multiEcho: true,
+    regionOptions: PANCREAS_REGION_OPTIONS,
     sizeOptions: PANCREAS_SIZE_OPTIONS,
     sizeDetailField: { key: 'thickness', label: 'Thickness', unit: 'cm', showWhen: ['enlarged'] },
     measurements: [
       { key: 'ductWidth', label: 'Pancreatic duct width', unit: 'cm' }
+    ],
+    extraAttrs: [
+      { key: 'periFat', label: 'Peri-pancreatic fat', options: PERI_PANCREATIC_FAT_OPTIONS }
     ]
   },
   { id: 'gi', name: 'Gastrointestinal tract', extraLabel: 'Additional notes', custom: 'gi' },
@@ -769,10 +987,10 @@ var ORGANS = [
 ];
 
 function freshOrganState(){
-  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '' };
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal' };
 }
 function freshSideState(){
-  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '' };
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal' };
 }
 function freshSidedOrganState(){
   return { activeSide: 'left', left: freshSideState(), right: freshSideState(), extra: '' };
@@ -1313,12 +1531,59 @@ function renderOrganToggle(){
   });
 }
 
-function buildSentence(organName, s, measurementsDefs, echoOptions){
+function attrValuesOf(stateObj, key){
+  var v = stateObj ? stateObj[key] : null;
+  if (Array.isArray(v)) return v.slice();
+  if (v === undefined || v === null || v === '') return [];
+  return [v];
+}
+
+function isMultiAttr(o, attrKey){
+  if (!o) return false;
+  if (attrKey === 'echo') return !!o.multiEcho;
+  if (attrKey === 'margins') return !!o.multiMargins;
+  return false;
+}
+
+function getMarginsOptionsFor(o){
+  return (o && o.marginsOptions) || ATTR_DEFS.margins.options;
+}
+
+var EXCLUSIVE_ATTR_VALUES = ['na', 'normal'];
+
+function toggleMultiValue(list, value){
+  var out = list.slice();
+  if (EXCLUSIVE_ATTR_VALUES.indexOf(value) !== -1) {
+    return out.indexOf(value) !== -1 ? [] : [value];
+  }
+  out = out.filter(function(v){ return EXCLUSIVE_ATTR_VALUES.indexOf(v) === -1; });
+  var idx = out.indexOf(value);
+  if (idx !== -1) out.splice(idx, 1); else out.push(value);
+  return out;
+}
+
+function joinList(items){
+  if (!items.length) return '';
+  if (items.length === 1) return items[0];
+  return items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1];
+}
+
+function buildSentence(organName, s, measurementsDefs, echoOptions, o){
   var parts = [];
-  var sizeOpt = ATTR_DEFS.size.options.filter(function(o){ return o.v === s.size; })[0];
-  var echoOpt = (echoOptions || ATTR_DEFS.echo.options).filter(function(o){ return o.v === s.echo; })[0];
-  var marginsOpt = ATTR_DEFS.margins.options.filter(function(o){ return o.v === s.margins; })[0];
-  var distOpt = ATTR_DEFS.dist.options.filter(function(o){ return o.v === s.dist; })[0];
+  var sizeOpts = getSizeOptionsFor(o || {});
+  var sizeOpt = sizeOpts.filter(function(x){ return x.v === s.size; })[0];
+  var echoOptList = echoOptions || ATTR_DEFS.echo.options;
+  var marginsOptList = getMarginsOptionsFor(o);
+  var distOpt = ATTR_DEFS.dist.options.filter(function(x){ return x.v === s.dist; })[0];
+
+  var displayName = organName;
+  if (o && o.regionOptions) {
+    var regionFrags = attrValuesOf(s, 'regions').map(function(v){
+      var ro = o.regionOptions.filter(function(x){ return x.v === v; })[0];
+      return ro ? ro.frag : '';
+    }).filter(Boolean);
+    if (regionFrags.length) displayName = organName + ' (' + joinList(regionFrags) + ')';
+  }
 
   var sizeText = (sizeOpt && sizeOpt.frag) ? sizeOpt.frag : '';
   if (measurementsDefs && measurementsDefs.length) {
@@ -1335,16 +1600,43 @@ function buildSentence(organName, s, measurementsDefs, echoOptions){
     }
   }
 
-  var lead = [];
-  if (sizeText) lead.push(sizeText);
-  if (echoOpt && echoOpt.frag) lead.push(echoOpt.frag);
-  if (lead.length) parts.push(organName + ' is ' + lead.join(', ') + '.');
+  var echoFrags = attrValuesOf(s, 'echo').map(function(v){
+    var eo = echoOptList.filter(function(x){ return x.v === v; })[0];
+    return eo ? eo.frag : '';
+  }).filter(Boolean);
+  var echoText = '';
+  if (echoFrags.length) {
+    echoText = echoFrags.map(function(f, i){
+      return i === 0 ? f : f.replace(/^with\s+/i, '');
+    }).join(' and ');
+  }
 
-  if (marginsOpt && marginsOpt.frag) parts.push(marginsOpt.frag);
+  if (sizeText && echoText) {
+    parts.push(displayName + ' is ' + sizeText + ', ' + echoText + '.');
+  } else if (sizeText) {
+    parts.push(displayName + ' is ' + sizeText + '.');
+  } else if (echoText) {
+    parts.push(displayName + ' ' + echoText.replace(/^with\s+/i, 'has ') + '.');
+  }
+
+  var marginAdjs = attrValuesOf(s, 'margins').map(function(v){
+    var mo = marginsOptList.filter(function(x){ return x.v === v; })[0];
+    return mo ? (mo.adj || '') : '';
+  }).filter(Boolean);
+  if (marginAdjs.length) parts.push('Margins are ' + joinList(marginAdjs) + '.');
+
   if (distOpt && distOpt.frag) parts.push(distOpt.frag);
   if ((s.dist === 'focal' || s.dist === 'diffuse') && s.lesionDetail && s.lesionDetail.trim()) {
     parts.push(s.lesionDetail.trim());
   }
+
+  if (o && o.extraAttrs) {
+    o.extraAttrs.forEach(function(ea){
+      var eaOpt = ea.options.filter(function(x){ return x.v === s[ea.key]; })[0];
+      if (eaOpt && eaOpt.frag) parts.push(eaOpt.frag);
+    });
+  }
+
   if (s.extra && s.extra.trim()) parts.push(s.extra.trim());
 
   return parts.join(' ');
@@ -1389,8 +1681,8 @@ function buildSidedSentence(o){
   var st = state[o.id];
   var measurementsDefs = getMeasurementsFor(o);
   var echoOptions = getEchoOptionsFor(o);
-  var leftText = buildSentence(o.sideLabels.left, st.left, measurementsDefs, echoOptions);
-  var rightText = buildSentence(o.sideLabels.right, st.right, measurementsDefs, echoOptions);
+  var leftText = buildSentence(o.sideLabels.left, st.left, measurementsDefs, echoOptions, o);
+  var rightText = buildSentence(o.sideLabels.right, st.right, measurementsDefs, echoOptions, o);
   var lines = [leftText, rightText].filter(Boolean);
   if (st.extra && st.extra.trim()) lines.push(st.extra.trim());
   return lines.join('\n');
@@ -1429,14 +1721,15 @@ function buildGISegmentSentence(segName, s){
       parts.push(s.wallLayeringDetail.trim());
     }
 
-    if (s.layerPattern === 'disproportionate') {
+    if (s.layerPattern === 'focal' || s.layerPattern === 'diffuse') {
       var selectedLayers = GI_LAYER_OPTS.filter(function(lo){ return s.layers && s.layers[lo.key]; });
       if (selectedLayers.length) {
         var layerFrags = selectedLayers.map(function(lo){
           var t = s.layerThickness && s.layerThickness[lo.key];
           return lo.label.toLowerCase() + (t && t.trim() ? ' (' + t.trim() + ' mm)' : '');
         });
-        parts.push('Disproportionate thickening of the ' + layerFrags.join(', ') + (selectedLayers.length > 1 ? ' layers.' : ' layer.'));
+        var patternWord = s.layerPattern === 'focal' ? 'Focal' : 'Diffuse';
+        parts.push(patternWord + ' thickening of the ' + layerFrags.join(', ') + (selectedLayers.length > 1 ? ' layers.' : ' layer.'));
       }
       if (s.layerDescription && s.layerDescription.trim()) {
         parts.push(s.layerDescription.trim());
@@ -1561,6 +1854,7 @@ function renderGISection(o, s, section){
         chip.textContent = opt.t;
         chip.addEventListener('click', function(){
           setValue(opt.v);
+          if (state[o.id]) state[o.id].textDirty = false;
           renderOrgans();
         });
         chipWrap.appendChild(chip);
@@ -1597,6 +1891,7 @@ function renderGISection(o, s, section){
         segToggleBtn.addEventListener('click', function(){
           if (!state[o.id].segmentIncluded) state[o.id].segmentIncluded = {};
           state[o.id].segmentIncluded[seg.key] = !segIncluded;
+          if (state[o.id]) state[o.id].textDirty = false;
           renderOrgans();
         });
         segNameRow.appendChild(segToggleBtn);
@@ -1632,8 +1927,10 @@ function renderGISection(o, s, section){
             apInput.value = segState.appearanceDetail || '';
             apInput.addEventListener('input', function(){
               state[o.id].segments[seg.key].appearanceDetail = apInput.value;
-              textArea.value = buildGISentence(state[o.id]);
-              autoResize(textArea);
+              if (!s.textDirty) {
+                textArea.value = buildGISentence(state[o.id]);
+                autoResize(textArea);
+              }
             });
             apField.appendChild(apInput);
             segWrap.appendChild(apField);
@@ -1657,8 +1954,10 @@ function renderGISection(o, s, section){
             wlInput.value = segState.wallLayeringDetail || '';
             wlInput.addEventListener('input', function(){
               state[o.id].segments[seg.key].wallLayeringDetail = wlInput.value;
-              textArea.value = buildGISentence(state[o.id]);
-              autoResize(textArea);
+              if (!s.textDirty) {
+                textArea.value = buildGISentence(state[o.id]);
+                autoResize(textArea);
+              }
             });
             wlField.appendChild(wlInput);
             segWrap.appendChild(wlField);
@@ -1676,8 +1975,10 @@ function renderGISection(o, s, section){
           ttInput.value = segState.totalThickness || '';
           ttInput.addEventListener('input', function(){
             state[o.id].segments[seg.key].totalThickness = ttInput.value;
-            textArea.value = buildGISentence(state[o.id]);
-            autoResize(textArea);
+            if (!s.textDirty) {
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            }
           });
           ttField.appendChild(ttInput);
           segWrap.appendChild(ttField);
@@ -1687,7 +1988,7 @@ function renderGISection(o, s, section){
             function(v){ state[o.id].segments[seg.key].layerPattern = v; }
           );
 
-          if (segState.layerPattern === 'disproportionate') {
+          if (segState.layerPattern === 'focal' || segState.layerPattern === 'diffuse') {
             var layerRow = document.createElement('div');
             layerRow.className = 'attr-row';
             var layerLabel = document.createElement('span');
@@ -1703,6 +2004,7 @@ function renderGISection(o, s, section){
               chip.textContent = lo.label;
               chip.addEventListener('click', function(){
                 state[o.id].segments[seg.key].layers[lo.key] = !state[o.id].segments[seg.key].layers[lo.key];
+                if (state[o.id]) state[o.id].textDirty = false;
                 renderOrgans();
               });
               layerChipWrap.appendChild(chip);
@@ -1727,8 +2029,10 @@ function renderGISection(o, s, section){
                 lInput.value = segState.layerThickness[lo.key] || '';
                 lInput.addEventListener('input', function(){
                   state[o.id].segments[seg.key].layerThickness[lo.key] = lInput.value;
-                  textArea.value = buildGISentence(state[o.id]);
-                  autoResize(textArea);
+                  if (!s.textDirty) {
+                    textArea.value = buildGISentence(state[o.id]);
+                    autoResize(textArea);
+                  }
                 });
                 lField.appendChild(lInput);
                 layerMeasGrid.appendChild(lField);
@@ -1748,8 +2052,10 @@ function renderGISection(o, s, section){
             descInput.value = segState.layerDescription || '';
             descInput.addEventListener('input', function(){
               state[o.id].segments[seg.key].layerDescription = descInput.value;
-              textArea.value = buildGISentence(state[o.id]);
-              autoResize(textArea);
+              if (!s.textDirty) {
+                textArea.value = buildGISentence(state[o.id]);
+                autoResize(textArea);
+              }
             });
             descField.appendChild(descInput);
             segWrap.appendChild(descField);
@@ -1791,8 +2097,10 @@ function renderGISection(o, s, section){
           msInput.value = segState.massSize || '';
           msInput.addEventListener('input', function(){
             state[o.id].segments[seg.key].massSize = msInput.value;
-            textArea.value = buildGISentence(state[o.id]);
-            autoResize(textArea);
+            if (!s.textDirty) {
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            }
           });
           msField.appendChild(msInput);
           segWrap.appendChild(msField);
@@ -1809,8 +2117,10 @@ function renderGISection(o, s, section){
           mdInput.value = segState.massDescription || '';
           mdInput.addEventListener('input', function(){
             state[o.id].segments[seg.key].massDescription = mdInput.value;
-            textArea.value = buildGISentence(state[o.id]);
-            autoResize(textArea);
+            if (!s.textDirty) {
+              textArea.value = buildGISentence(state[o.id]);
+              autoResize(textArea);
+            }
           });
           mdField.appendChild(mdInput);
           segWrap.appendChild(mdField);
@@ -1844,8 +2154,10 @@ function renderGISection(o, s, section){
   extraInput.value = s.extra;
   extraInput.addEventListener('input', function(){
     state[o.id].extra = extraInput.value;
-    textArea.value = buildGISentence(state[o.id]);
-    autoResize(textArea);
+    if (!s.textDirty) {
+      textArea.value = buildGISentence(state[o.id]);
+      autoResize(textArea);
+    }
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
@@ -1858,10 +2170,11 @@ function renderGISection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 6;
-  textArea.value = buildGISentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildGISentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -1884,6 +2197,7 @@ function renderBladderSection(o, s, section){
       chip.textContent = opt.label || opt[1];
       chip.addEventListener('click', function(){
         onClick(opt);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -1926,8 +2240,10 @@ function renderBladderSection(o, s, section){
   extraInput.value = s.extra;
   extraInput.addEventListener('input', function(){
     state[o.id].extra = extraInput.value;
-    textArea.value = buildBladderSentence(state[o.id]);
-    autoResize(textArea);
+    if (!s.textDirty) {
+      textArea.value = buildBladderSentence(state[o.id]);
+      autoResize(textArea);
+    }
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
@@ -1940,10 +2256,11 @@ function renderBladderSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildBladderSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildBladderSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -1966,6 +2283,7 @@ function renderLymphSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -1989,8 +2307,10 @@ function renderLymphSection(o, s, section){
     locInput.value = s.location || '';
     locInput.addEventListener('input', function(){
       state[o.id].location = locInput.value;
-      textArea.value = buildLymphSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildLymphSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     locField.appendChild(locInput);
     section.appendChild(locField);
@@ -2009,8 +2329,10 @@ function renderLymphSection(o, s, section){
     thInput.value = s.thickness || '';
     thInput.addEventListener('input', function(){
       state[o.id].thickness = thInput.value;
-      textArea.value = buildLymphSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildLymphSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     thField.appendChild(thInput);
     section.appendChild(thField);
@@ -2027,8 +2349,10 @@ function renderLymphSection(o, s, section){
     dtInput.value = s.detail || '';
     dtInput.addEventListener('input', function(){
       state[o.id].detail = dtInput.value;
-      textArea.value = buildLymphSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildLymphSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     dtField.appendChild(dtInput);
     section.appendChild(dtField);
@@ -2042,10 +2366,11 @@ function renderLymphSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildLymphSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildLymphSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2068,6 +2393,7 @@ function renderVasculatureSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2093,8 +2419,10 @@ function renderVasculatureSection(o, s, section){
     vesInput.value = s.vessel || '';
     vesInput.addEventListener('input', function(){
       state[o.id].vessel = vesInput.value;
-      textArea.value = buildVasculatureSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildVasculatureSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     vesField.appendChild(vesInput);
     section.appendChild(vesField);
@@ -2111,8 +2439,10 @@ function renderVasculatureSection(o, s, section){
     dtInput.value = s.detail || '';
     dtInput.addEventListener('input', function(){
       state[o.id].detail = dtInput.value;
-      textArea.value = buildVasculatureSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildVasculatureSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     dtField.appendChild(dtInput);
     section.appendChild(dtField);
@@ -2129,8 +2459,10 @@ function renderVasculatureSection(o, s, section){
   extraInput.value = s.extra;
   extraInput.addEventListener('input', function(){
     state[o.id].extra = extraInput.value;
-    textArea.value = buildVasculatureSentence(state[o.id]);
-    autoResize(textArea);
+    if (!s.textDirty) {
+      textArea.value = buildVasculatureSentence(state[o.id]);
+      autoResize(textArea);
+    }
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
@@ -2143,10 +2475,11 @@ function renderVasculatureSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildVasculatureSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildVasculatureSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2169,6 +2502,7 @@ function renderGenitalSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2190,8 +2524,10 @@ function renderGenitalSection(o, s, section){
     input.value = getValue() || '';
     input.addEventListener('input', function(){
       setValue(input.value);
-      textArea.value = buildGenitalSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildGenitalSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     field.appendChild(input);
     section.appendChild(field);
@@ -2282,8 +2618,10 @@ function renderGenitalSection(o, s, section){
   extraInput.value = s.extra;
   extraInput.addEventListener('input', function(){
     state[o.id].extra = extraInput.value;
-    textArea.value = buildGenitalSentence(state[o.id]);
-    autoResize(textArea);
+    if (!s.textDirty) {
+      textArea.value = buildGenitalSentence(state[o.id]);
+      autoResize(textArea);
+    }
   });
   extraField.appendChild(extraInput);
   section.appendChild(extraField);
@@ -2296,10 +2634,11 @@ function renderGenitalSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 4;
-  textArea.value = buildGenitalSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildGenitalSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2322,6 +2661,7 @@ function renderGallbladderSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2343,8 +2683,10 @@ function renderGallbladderSection(o, s, section){
     input.value = getValue() || '';
     input.addEventListener('input', function(){
       setValue(input.value);
-      textArea.value = buildGallbladderSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildGallbladderSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     field.appendChild(input);
     section.appendChild(field);
@@ -2365,10 +2707,11 @@ function renderGallbladderSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildGallbladderSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildGallbladderSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2391,6 +2734,7 @@ function renderBiliarySection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2412,8 +2756,10 @@ function renderBiliarySection(o, s, section){
     input.value = getValue() || '';
     input.addEventListener('input', function(){
       setValue(input.value);
-      textArea.value = buildBiliarySentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildBiliarySentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     field.appendChild(input);
     section.appendChild(field);
@@ -2447,6 +2793,7 @@ function renderBiliarySection(o, s, section){
   mdpToggleBtn.textContent = s.mdpScanned ? 'Scanned' : 'Not scanned';
   mdpToggleBtn.addEventListener('click', function(){
     state[o.id].mdpScanned = !state[o.id].mdpScanned;
+    if (state[o.id]) state[o.id].textDirty = false;
     renderOrgans();
   });
   mdpRow.appendChild(mdpToggleBtn);
@@ -2469,10 +2816,11 @@ function renderBiliarySection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildBiliarySentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildBiliarySentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2495,6 +2843,7 @@ function renderUretersSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         setValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2516,8 +2865,10 @@ function renderUretersSection(o, s, section){
     input.value = getValue() || '';
     input.addEventListener('input', function(){
       setValue(input.value);
-      textArea.value = buildUretersSentence(state[o.id]);
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = buildUretersSentence(state[o.id]);
+        autoResize(textArea);
+      }
     });
     field.appendChild(input);
     section.appendChild(field);
@@ -2539,6 +2890,7 @@ function renderUretersSection(o, s, section){
       chip.textContent = opt.t;
       chip.addEventListener('click', function(){
         toggleValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       chipWrap.appendChild(chip);
@@ -2575,6 +2927,7 @@ function renderUretersSection(o, s, section){
       sideToggleBtn.textContent = sideState.dilated ? 'Dilated' : 'Not dilated';
       sideToggleBtn.addEventListener('click', function(){
         state[o.id][sideKey].dilated = !state[o.id][sideKey].dilated;
+        if (state[o.id]) state[o.id].textDirty = false;
         renderOrgans();
       });
       sideRow.appendChild(sideToggleBtn);
@@ -2601,10 +2954,11 @@ function renderUretersSection(o, s, section){
   var textArea = document.createElement('textarea');
   textArea.className = 'organ-text';
   textArea.rows = 3;
-  textArea.value = buildUretersSentence(s);
+  textArea.value = s.textDirty ? s.customText : (buildUretersSentence(s));
   textArea.dataset.organId = o.id;
   textArea.addEventListener('input', function(){
     s.customText = textArea.value;
+    s.textDirty = true;
     autoResize(textArea);
   });
   section.appendChild(textArea);
@@ -2752,6 +3106,33 @@ function renderOrgans(){
 
     var activeState = o.sides ? s[s.activeSide] : s;
 
+    if (o.regionOptions) {
+      var regionRow = document.createElement('div');
+      regionRow.className = 'attr-row';
+      var regionLabel = document.createElement('span');
+      regionLabel.className = 'attr-label';
+      regionLabel.textContent = 'Region';
+      regionRow.appendChild(regionLabel);
+      var regionChipWrap = document.createElement('div');
+      regionChipWrap.className = 'chip-wrap';
+      var selectedRegions = attrValuesOf(activeState, 'regions');
+      o.regionOptions.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (selectedRegions.indexOf(opt.v) !== -1 ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.regions = toggleMultiValue(attrValuesOf(target, 'regions'), opt.v);
+          if (state[o.id]) state[o.id].textDirty = false;
+          renderOrgans();
+        });
+        regionChipWrap.appendChild(chip);
+      });
+      regionRow.appendChild(regionChipWrap);
+      body.appendChild(regionRow);
+    }
+
     ['size','echo','margins','dist'].forEach(function(attrKey){
       var def = ATTR_DEFS[attrKey];
       var row = document.createElement('div');
@@ -2760,16 +3141,26 @@ function renderOrgans(){
       label.className = 'attr-label';
       label.textContent = def.label;
       row.appendChild(label);
-      var options = attrKey === 'echo' ? getEchoOptionsFor(o) : (attrKey === 'size' ? getSizeOptionsFor(o) : def.options);
+      var options = attrKey === 'echo' ? getEchoOptionsFor(o)
+        : (attrKey === 'size' ? getSizeOptionsFor(o)
+        : (attrKey === 'margins' ? getMarginsOptionsFor(o) : def.options));
+      var multi = isMultiAttr(o, attrKey);
+      var selectedVals = attrValuesOf(activeState, attrKey);
       var chipWrap = document.createElement('div');
       chipWrap.className = 'chip-wrap';
       options.forEach(function(opt){
         var chip = document.createElement('button');
         chip.type = 'button';
-        chip.className = 'chip' + (activeState[attrKey] === opt.v ? ' active' : '');
+        chip.className = 'chip' + (selectedVals.indexOf(opt.v) !== -1 ? ' active' : '');
         chip.textContent = opt.t;
         chip.addEventListener('click', function(){
-          (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id])[attrKey] = opt.v;
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          if (multi) {
+            target[attrKey] = toggleMultiValue(attrValuesOf(target, attrKey), opt.v);
+          } else {
+            target[attrKey] = opt.v;
+          }
+          if (state[o.id]) state[o.id].textDirty = false;
           renderOrgans();
         });
         chipWrap.appendChild(chip);
@@ -2794,8 +3185,10 @@ function renderOrgans(){
           var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
           if (!target.measurements) target.measurements = {};
           target.measurements[sdf.key] = sdInput.value;
-          textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, target), getEchoOptionsFor(o));
-          autoResize(textArea);
+          if (!s.textDirty) {
+            textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, target), getEchoOptionsFor(o), o);
+            autoResize(textArea);
+          }
         });
         sdField.appendChild(sdInput);
         body.appendChild(sdField);
@@ -2815,8 +3208,10 @@ function renderOrgans(){
       lesionInput.value = activeState.lesionDetail || '';
       lesionInput.addEventListener('input', function(){
         (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id]).lesionDetail = lesionInput.value;
-        textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
-        autoResize(textArea);
+        if (!s.textDirty) {
+          textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o), o);
+          autoResize(textArea);
+        }
       });
       lesionField.appendChild(lesionInput);
       body.appendChild(lesionField);
@@ -2840,13 +3235,44 @@ function renderOrgans(){
         mInput.value = activeState.measurements[m.key] || '';
         mInput.addEventListener('input', function(){
           (o.sides ? state[o.id][state[o.id].activeSide] : state[o.id]).measurements[m.key] = mInput.value;
-          textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
-          autoResize(textArea);
+          if (!s.textDirty) {
+            textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o), o);
+            autoResize(textArea);
+          }
         });
         mField.appendChild(mInput);
         measGrid.appendChild(mField);
       });
       body.appendChild(measGrid);
+    }
+
+    if (o.extraAttrs) {
+      o.extraAttrs.forEach(function(ea){
+        var eaRow = document.createElement('div');
+        eaRow.className = 'attr-row';
+        eaRow.style.marginTop = '6px';
+        var eaLabel = document.createElement('span');
+        eaLabel.className = 'attr-label';
+        eaLabel.textContent = ea.label;
+        eaRow.appendChild(eaLabel);
+        var eaChipWrap = document.createElement('div');
+        eaChipWrap.className = 'chip-wrap';
+        ea.options.forEach(function(opt){
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'chip' + (activeState[ea.key] === opt.v ? ' active' : '');
+          chip.textContent = opt.t;
+          chip.addEventListener('click', function(){
+            var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+            target[ea.key] = opt.v;
+            if (state[o.id]) state[o.id].textDirty = false;
+            renderOrgans();
+          });
+          eaChipWrap.appendChild(chip);
+        });
+        eaRow.appendChild(eaChipWrap);
+        body.appendChild(eaRow);
+      });
     }
 
     var extraField = document.createElement('div');
@@ -2860,8 +3286,10 @@ function renderOrgans(){
     extraInput.value = s.extra;
     extraInput.addEventListener('input', function(){
       state[o.id].extra = extraInput.value;
-      textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
-      autoResize(textArea);
+      if (!s.textDirty) {
+        textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o), o);
+        autoResize(textArea);
+      }
     });
     extraField.appendChild(extraInput);
     body.appendChild(extraField);
@@ -2874,10 +3302,11 @@ function renderOrgans(){
     var textArea = document.createElement('textarea');
     textArea.className = 'organ-text';
     textArea.rows = o.sides ? 4 : 2;
-    textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, s, getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o));
+    textArea.value = s.textDirty ? s.customText : (o.sides ? buildSidedSentence(o) : buildSentence(o.name, s, getAllMeasurementsFor(o, activeState), getEchoOptionsFor(o), o));
     textArea.dataset.organId = o.id;
     textArea.addEventListener('input', function(){
       s.customText = textArea.value;
+      s.textDirty = true;
       autoResize(textArea);
     });
     body.appendChild(textArea);
@@ -2940,11 +3369,11 @@ document.getElementById('resetBtn').addEventListener('click', function(){
       state[o.id] = freshUretersNAState();
     } else if (o.sides) {
       state[o.id] = { activeSide: 'left',
-        left: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {} },
-        right: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {} },
+        left: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na' },
+        right: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na' },
         extra: '' };
     } else {
-      state[o.id] = { size: 'na', echo: 'na', margins: 'na', dist: 'na', extra: '', measurements: {} };
+      state[o.id] = { size: 'na', echo: 'na', margins: 'na', dist: 'na', extra: '', measurements: {}, regions: [], periFat: 'na' };
     }
   });
   renderOrganToggle();
@@ -2960,6 +3389,7 @@ document.getElementById('printBtn').addEventListener('click', function(){
     ['Breed', document.getElementById('f_breed').value],
     ['Sex', document.getElementById('f_sex').value],
     ['Age / DOB', document.getElementById('f_age').value],
+    ['Patient status', document.getElementById('f_status').value],
     ['Exam date', document.getElementById('f_date').value]
   ];
   headerEl.innerHTML = fields.map(function(f){
@@ -3050,6 +3480,8 @@ function getPatientFields(){
     species: document.getElementById('f_species').value,
     breed: document.getElementById('f_breed').value,
     sex: document.getElementById('f_sex').value,
+    age: document.getElementById('f_age').value,
+    patient_status: document.getElementById('f_status').value,
     exam_date: document.getElementById('f_date').value,
     history: document.getElementById('f_history').value,
     recs: document.getElementById('f_recs').value
@@ -3103,6 +3535,8 @@ function loadReportIntoForm(report){
     document.getElementById('f_species').value = data.patientFields.species || '';
     document.getElementById('f_breed').value = data.patientFields.breed || '';
     document.getElementById('f_sex').value = data.patientFields.sex || '';
+    document.getElementById('f_age').value = data.patientFields.age || '';
+    document.getElementById('f_status').value = data.patientFields.patient_status || '';
     document.getElementById('f_date').value = data.patientFields.exam_date || '';
     document.getElementById('f_history').value = data.patientFields.history || '';
     document.getElementById('f_recs').value = data.patientFields.recs || '';
@@ -3198,6 +3632,258 @@ document.getElementById('f_species').addEventListener('change', function(){
 
 document.getElementById('f_sex').addEventListener('change', function(){
   renderOrgans();
+});
+
+/* ---------------- Feedback ---------------- */
+
+var FB_CATEGORIES = [
+  { v: 'bug', t: 'Bug / 錯誤' },
+  { v: 'feature', t: '功能建議' },
+  { v: 'other', t: '其他' }
+];
+var FB_SEVERITIES = [
+  { v: 'high', t: '很急' },
+  { v: 'mid', t: '普通' },
+  { v: 'low', t: '小問題' }
+];
+var FB_STATUSES = [
+  { v: 'new', t: '未處理' },
+  { v: 'doing', t: '處理中' },
+  { v: 'done', t: '已完成' }
+];
+
+var fbDraft = { category: 'bug', severity: 'mid' };
+
+function renderFbChips(containerId, options, selectedKey){
+  var wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  options.forEach(function(opt){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip' + (fbDraft[selectedKey] === opt.v ? ' active' : '');
+    chip.textContent = opt.t;
+    chip.addEventListener('click', function(){
+      fbDraft[selectedKey] = opt.v;
+      renderFbChips(containerId, options, selectedKey);
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function openFeedbackModal(){
+  fbDraft = { category: 'bug', severity: 'mid' };
+  document.getElementById('fbMessage').value = '';
+  var msg = document.getElementById('fbStatusMsg');
+  msg.style.display = 'none';
+  msg.textContent = '';
+  renderFbChips('fbCategoryChips', FB_CATEGORIES, 'category');
+  renderFbChips('fbSeverityChips', FB_SEVERITIES, 'severity');
+  document.getElementById('feedbackModal').classList.add('open');
+  document.getElementById('fbMessage').focus();
+}
+
+document.getElementById('feedbackFab').addEventListener('click', openFeedbackModal);
+document.getElementById('feedbackModalClose').addEventListener('click', function(){
+  document.getElementById('feedbackModal').classList.remove('open');
+});
+
+document.getElementById('fbSubmitBtn').addEventListener('click', function(){
+  var btn = this;
+  var msgEl = document.getElementById('fbStatusMsg');
+  var text = document.getElementById('fbMessage').value.trim();
+
+  if (!text) {
+    msgEl.textContent = '請先填寫問題描述再送出。';
+    msgEl.style.color = '#c0392b';
+    msgEl.style.display = 'block';
+    document.getElementById('fbMessage').focus();
+    return;
+  }
+
+  var originalLabel = btn.textContent;
+  btn.textContent = '送出中...';
+  msgEl.style.display = 'none';
+
+  var context = {
+    case_number: document.getElementById('f_case').value || null,
+    patient_name: document.getElementById('f_patient').value || null,
+    scanning_vet: document.getElementById('f_vet').value || null,
+    exam_date: document.getElementById('f_date').value || null,
+    user_agent: navigator.userAgent,
+    reported_at_local: new Date().toString()
+  };
+
+  sbClient.from('feedback').insert([{
+    reporter_email: currentUserEmail,
+    category: fbDraft.category,
+    severity: fbDraft.severity,
+    message: text,
+    context: context,
+    status: 'new'
+  }]).then(function(result){
+    btn.textContent = originalLabel;
+    if (result.error) {
+      msgEl.textContent = '送出失敗：' + result.error.message;
+      msgEl.style.color = '#c0392b';
+      msgEl.style.display = 'block';
+      return;
+    }
+    msgEl.textContent = '已送出，謝謝你的回報！';
+    msgEl.style.color = '#2e7d3a';
+    msgEl.style.display = 'block';
+    document.getElementById('fbMessage').value = '';
+    setTimeout(function(){
+      document.getElementById('feedbackModal').classList.remove('open');
+    }, 1200);
+  });
+});
+
+/* ----- Feedback admin ----- */
+
+var fbFilter = 'all';
+
+function labelOf(options, value){
+  var hit = options.filter(function(o){ return o.v === value; })[0];
+  return hit ? hit.t : (value || '—');
+}
+
+function renderFbFilterChips(){
+  var wrap = document.getElementById('fbFilterChips');
+  wrap.innerHTML = '';
+  [{ v: 'all', t: '全部' }].concat(FB_STATUSES).forEach(function(opt){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip' + (fbFilter === opt.v ? ' active' : '');
+    chip.textContent = opt.t;
+    chip.addEventListener('click', function(){
+      fbFilter = opt.v;
+      renderFbFilterChips();
+      fetchFeedback();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function renderFeedbackList(items){
+  var listEl = document.getElementById('adminFeedbackList');
+  if (!items.length) {
+    listEl.textContent = '目前沒有符合條件的回報。';
+    return;
+  }
+  listEl.innerHTML = '';
+  items.forEach(function(fb){
+    var item = document.createElement('div');
+    item.className = 'fb-item';
+
+    var top = document.createElement('div');
+    top.className = 'fb-item-top';
+
+    var stBadge = document.createElement('span');
+    stBadge.className = 'fb-badge st-' + (fb.status || 'new');
+    stBadge.textContent = labelOf(FB_STATUSES, fb.status);
+    top.appendChild(stBadge);
+
+    var catBadge = document.createElement('span');
+    catBadge.className = 'fb-badge cat-' + (fb.category || 'other');
+    catBadge.textContent = labelOf(FB_CATEGORIES, fb.category);
+    top.appendChild(catBadge);
+
+    var sevBadge = document.createElement('span');
+    sevBadge.className = 'fb-badge sev-' + (fb.severity || 'mid');
+    sevBadge.textContent = labelOf(FB_SEVERITIES, fb.severity);
+    top.appendChild(sevBadge);
+
+    item.appendChild(top);
+
+    var msgP = document.createElement('p');
+    msgP.className = 'fb-item-msg';
+    msgP.textContent = fb.message || '';
+    item.appendChild(msgP);
+
+    var meta = document.createElement('div');
+    meta.className = 'fb-item-meta';
+    var when = fb.created_at ? new Date(fb.created_at).toLocaleString() : '';
+    var ctx = fb.context || {};
+    var ctxBits = [];
+    if (ctx.case_number) ctxBits.push('病例號 ' + ctx.case_number);
+    if (ctx.patient_name) ctxBits.push('病患 ' + ctx.patient_name);
+    if (ctx.scanning_vet) ctxBits.push('掃描醫師 ' + ctx.scanning_vet);
+    meta.textContent = (fb.reporter_email || '(unknown)') + ' · ' + when +
+      (ctxBits.length ? ' · ' + ctxBits.join('、') : '');
+    item.appendChild(meta);
+
+    var actions = document.createElement('div');
+    actions.className = 'fb-item-actions';
+
+    var sel = document.createElement('select');
+    FB_STATUSES.forEach(function(st){
+      var op = document.createElement('option');
+      op.value = st.v;
+      op.textContent = st.t;
+      sel.appendChild(op);
+    });
+    sel.value = fb.status || 'new';
+    sel.addEventListener('change', function(){
+      sbClient.from('feedback').update({ status: sel.value }).eq('id', fb.id).then(function(res){
+        if (res.error) { alert('狀態更新失敗：' + res.error.message); return; }
+        fetchFeedback();
+      });
+    });
+    actions.appendChild(sel);
+
+    var noteInput = document.createElement('input');
+    noteInput.type = 'text';
+    noteInput.placeholder = '處理備註（離開欄位自動儲存）';
+    noteInput.value = fb.admin_notes || '';
+    noteInput.addEventListener('blur', function(){
+      if (noteInput.value === (fb.admin_notes || '')) return;
+      sbClient.from('feedback').update({ admin_notes: noteInput.value }).eq('id', fb.id).then(function(res){
+        if (res.error) { alert('備註儲存失敗：' + res.error.message); return; }
+        fb.admin_notes = noteInput.value;
+      });
+    });
+    actions.appendChild(noteInput);
+
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'fb-delete-btn';
+    delBtn.textContent = '刪除';
+    delBtn.addEventListener('click', function(){
+      var preview = (fb.message || '').slice(0, 30);
+      if (!confirm('確定要刪除這則回報嗎？\n\n「' + preview + (fb.message && fb.message.length > 30 ? '…' : '') + '」\n\n刪除後無法復原。')) return;
+      sbClient.from('feedback').delete().eq('id', fb.id).then(function(res){
+        if (res.error) { alert('刪除失敗：' + res.error.message); return; }
+        fetchFeedback();
+      });
+    });
+    actions.appendChild(delBtn);
+
+    item.appendChild(actions);
+    listEl.appendChild(item);
+  });
+}
+
+function fetchFeedback(){
+  document.getElementById('adminFeedbackList').textContent = 'Loading...';
+  var query = sbClient.from('feedback').select('*');
+  if (fbFilter !== 'all') query = query.eq('status', fbFilter);
+  query.order('created_at', { ascending: false }).limit(200).then(function(result){
+    if (result.error) {
+      document.getElementById('adminFeedbackList').textContent = '載入失敗：' + result.error.message;
+      return;
+    }
+    renderFeedbackList(result.data || []);
+  });
+}
+
+document.getElementById('adminFeedbackBtn').addEventListener('click', function(){
+  document.getElementById('adminFeedbackModal').classList.add('open');
+  renderFbFilterChips();
+  fetchFeedback();
+});
+
+document.getElementById('adminFeedbackClose').addEventListener('click', function(){
+  document.getElementById('adminFeedbackModal').classList.remove('open');
 });
 
 renderOrganToggle();
