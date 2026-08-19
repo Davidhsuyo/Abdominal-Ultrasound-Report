@@ -701,7 +701,10 @@
     <div class="card" style="margin-bottom:0;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid #eee;">
         <h2 style="margin:0; padding:0; border:none;">Organs scanned</h2>
-        <button type="button" class="organ-collapse-btn" id="organScannedCollapseBtn">▾</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="action secondary" id="organDeselectAllBtn" style="padding:5px 12px; font-size:13px;">Deselect all</button>
+          <button type="button" class="organ-collapse-btn" id="organScannedCollapseBtn">▾</button>
+        </div>
       </div>
       <div id="organScannedBody">
         <p class="subtitle" style="margin:0 0 10px;">All organs are included by default. Deselect any organ not scanned in this exam to hide its section below.</p>
@@ -5125,6 +5128,12 @@ document.getElementById('organScannedCollapseBtn').addEventListener('click', fun
   var collapsed = body.style.display === 'none';
   body.style.display = collapsed ? '' : 'none';
   btn.classList.toggle('collapsed', !collapsed);
+});
+
+document.getElementById('organDeselectAllBtn').addEventListener('click', function(){
+  ORGANS.forEach(function(o){ organIncluded[o.id] = false; });
+  renderOrganToggle();
+  renderOrgans();
 });
 
 /* ---------------- Feedback ---------------- */
