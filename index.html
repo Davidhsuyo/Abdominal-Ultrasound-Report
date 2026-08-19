@@ -902,7 +902,7 @@ var PERI_PANCREATIC_FAT_OPTIONS = [
 ];
 
 var GI_CATEGORIES = [
-  { key: 'stomach', label: 'Stomach', segments: [
+  { key: 'stomach', label: 'Stomach', sharedPeristalsis: true, ingestaFlag: true, segments: [
     { key: 'cardia', name: 'Cardia' },
     { key: 'body', name: 'Gastric body' },
     { key: 'pylorus', name: 'Pylorus' }
@@ -912,7 +912,7 @@ var GI_CATEGORIES = [
     { key: 'jejunum', name: 'Jejunum' },
     { key: 'ileum', name: 'Ileum' }
   ]},
-  { key: 'colon', label: 'Colon', segments: [
+  { key: 'colon', label: 'Colon', noPeristalsis: true, segments: [
     { key: 'ascending', name: 'Ascending colon' },
     { key: 'transverse', name: 'Transverse colon' },
     { key: 'descending', name: 'Descending colon' }
@@ -943,6 +943,13 @@ var GI_PERISTALSIS_OPTS = [
   { v: 'reduced', t: 'Reduced' },
   { v: 'increased', t: 'Increased' },
   { v: 'absent', t: 'Absent' }
+];
+var GI_PERISTALSIS_OVERALL_OPTS = [
+  { v: 'normal', t: 'Normal' },
+  { v: 'reduced', t: 'Reduced' },
+  { v: 'increased', t: 'Increased' },
+  { v: 'absent', t: 'Absent' },
+  { v: 'na', t: 'N/A' }
 ];
 var GI_CONTENTS_OPTS = [
   { v: 'unremarkable', t: 'Unremarkable' },
@@ -990,6 +997,16 @@ var LYMPH_ECHO_OPTS = [
   { v: 'heterogeneous', t: 'Heterogeneous' },
   { v: 'hyperechoic', t: 'Hyperechoic' },
   { v: 'hypoechoic_anechoic', t: 'Hypoechoic to anechoic' }
+];
+var LYMPH_NODE_LIST = [
+  { key: 'hepatic', label: 'Hepatic' },
+  { key: 'gastric', label: 'Gastric' },
+  { key: 'pancreaticoduodenal', label: 'Pancreaticoduodenal' },
+  { key: 'jejunal', label: 'Jejunal' },
+  { key: 'colic', label: 'Colic' },
+  { key: 'ileocecal', label: 'Ileocecal' },
+  { key: 'medial_iliac_left', label: 'Left medial iliac (MILN)' },
+  { key: 'medial_iliac_right', label: 'Right medial iliac (MILN)' }
 ];
 
 var ASCITES_AMOUNT_OPTS = [
@@ -1072,12 +1089,15 @@ var UTERUS_FLUID_OPTS = [
 var GALLBLADDER_STATUS_OPTS = [
   { v: 'na', t: 'N/A' },
   { v: 'normal', t: 'Normal' },
-  { v: 'abnormal', t: 'Abnormal' }
+  { v: 'abnormal', t: 'Abnormal' },
+  { v: 'focal_thickening', t: 'Focal Thickening' },
+  { v: 'generalized_thickening', t: 'Generalized thickening' }
 ];
 var GALLBLADDER_ECHO_OPTS = [
   { v: 'normal', t: 'Normal' },
   { v: 'halo', t: 'Halo sign (wall edema)' },
-  { v: 'hyperechoic', t: 'Diffusely hyperechoic' }
+  { v: 'hyperechoic', t: 'Diffusely hyperechoic' },
+  { v: 'focal_hyperechoic', t: 'Focal Hyperechoic' }
 ];
 var GALLBLADDER_CONTENT_OPTS = [
   { v: 'anechoic', t: 'Anechoic (normal bile)' },
@@ -1085,9 +1105,15 @@ var GALLBLADDER_CONTENT_OPTS = [
   { v: 'mucocele', t: 'Stellate/kiwi-fruit pattern (mucocele)' },
   { v: 'choleliths', t: 'Choleliths present' }
 ];
+var GALLBLADDER_SLUDGE_OPTS = [
+  { v: 'scant', t: 'Scant' },
+  { v: 'moderate', t: 'Moderate' },
+  { v: 'severe', t: 'Severe' }
+];
 var GALLBLADDER_OBSTRUCTION_OPTS = [
   { v: 'none', t: 'None' },
-  { v: 'distended', t: 'Gallbladder distended' }
+  { v: 'distended', t: 'Gallbladder distended' },
+  { v: 'na', t: 'N/A' }
 ];
 
 var BILIARY_STATUS_OPTS = [
@@ -1261,32 +1287,44 @@ function freshGIJunctionSegmentStateNA(){
 function freshGIState(){
   var segments = {};
   var segmentIncluded = {};
+  var categoryPeristalsis = {};
+  var categoryIngesta = {};
   GI_CATEGORIES.forEach(function(cat){
     cat.segments.forEach(function(seg){
       segments[seg.key] = cat.isJunction ? freshGIJunctionSegmentState() : freshGISegmentState();
       segmentIncluded[seg.key] = true;
     });
+    if (cat.sharedPeristalsis) categoryPeristalsis[cat.key] = 'normal';
+    if (cat.ingestaFlag) categoryIngesta[cat.key] = 'no';
   });
   return {
     expanded: { stomach: false, small_intestine: false, colon: false, junctions: false },
     segments: segments,
     segmentIncluded: segmentIncluded,
+    categoryPeristalsis: categoryPeristalsis,
+    categoryIngesta: categoryIngesta,
     extra: ''
   };
 }
 function freshGIStateNA(){
   var segments = {};
   var segmentIncluded = {};
+  var categoryPeristalsis = {};
+  var categoryIngesta = {};
   GI_CATEGORIES.forEach(function(cat){
     cat.segments.forEach(function(seg){
       segments[seg.key] = cat.isJunction ? freshGIJunctionSegmentStateNA() : freshGISegmentStateNA();
       segmentIncluded[seg.key] = true;
     });
+    if (cat.sharedPeristalsis) categoryPeristalsis[cat.key] = '';
+    if (cat.ingestaFlag) categoryIngesta[cat.key] = '';
   });
   return {
     expanded: { stomach: false, small_intestine: false, colon: false, junctions: false },
     segments: segments,
     segmentIncluded: segmentIncluded,
+    categoryPeristalsis: categoryPeristalsis,
+    categoryIngesta: categoryIngesta,
     extra: ''
   };
 }
@@ -1332,11 +1370,18 @@ function freshBladderNAState(){
   };
 }
 
+function freshLymphNodeEntryState(){
+  return { echo: '', thickness: '', detail: '' };
+}
 function freshLymphState(){
-  return { size: 'normal', location: '', echo: '', thickness: '', detail: '' };
+  var nodes = {};
+  LYMPH_NODE_LIST.forEach(function(n){ nodes[n.key] = freshLymphNodeEntryState(); });
+  return { size: 'normal', selectedNodes: [], nodes: nodes };
 }
 function freshLymphNAState(){
-  return { size: 'na', location: '', echo: '', thickness: '', detail: '' };
+  var nodes = {};
+  LYMPH_NODE_LIST.forEach(function(n){ nodes[n.key] = freshLymphNodeEntryState(); });
+  return { size: 'na', selectedNodes: [], nodes: nodes };
 }
 
 function freshAscitesState(){
@@ -1354,10 +1399,10 @@ function freshVasculatureNAState(){
 }
 
 function freshGallbladderState(){
-  return { status: 'normal', thickness: '', echo: 'normal', content: 'anechoic', obstruction: 'none', detail: '' };
+  return { status: 'normal', thickness: '', echo: 'normal', content: 'anechoic', sludgeAmount: '', obstruction: 'none', detail: '' };
 }
 function freshGallbladderNAState(){
-  return { status: '', thickness: '', echo: '', content: '', obstruction: '', detail: '' };
+  return { status: '', thickness: '', echo: '', content: '', sludgeAmount: '', obstruction: '', detail: '' };
 }
 
 function freshBiliaryState(){
@@ -1480,21 +1525,29 @@ function buildBladderSentence(s){
 }
 
 function buildLymphSentence(s){
-  var parts = [];
-
   if (s.size === 'normal') {
-    parts.push('Unremarkable lymphatic system. LN size are generally normal.');
-  } else if (s.size === 'enlarged') {
-    var lead = [];
-    if (s.location && s.location.trim()) lead.push(s.location.trim());
-    var echoOpt = LYMPH_ECHO_OPTS.filter(function(o){ return o.v === s.echo; })[0];
-    if (echoOpt) lead.push(echoOpt.t.toLowerCase() + ' in echogenicity');
-    if (s.thickness && s.thickness.trim()) lead.push('measuring up to ' + s.thickness.trim() + ' mm in thickness');
-    if (lead.length) parts.push(capitalize(lead.join(', ')) + '.');
-    if (s.detail && s.detail.trim()) parts.push(s.detail.trim());
+    return 'Unremarkable lymphatic system. LN size are generally normal.';
   }
 
-  return parts.join(' ');
+  if (s.size === 'enlarged') {
+    var selectedNodes = s.selectedNodes || [];
+    var nodes = s.nodes || {};
+    var lines = [];
+    LYMPH_NODE_LIST.forEach(function(n){
+      if (selectedNodes.indexOf(n.key) === -1) return;
+      var nodeState = nodes[n.key] || {};
+      var lead = [n.label + ' lymph node is enlarged'];
+      var echoOpt = LYMPH_ECHO_OPTS.filter(function(o){ return o.v === nodeState.echo; })[0];
+      if (echoOpt) lead.push(echoOpt.t.toLowerCase() + ' in echogenicity');
+      if (nodeState.thickness && nodeState.thickness.trim()) lead.push('measuring up to ' + nodeState.thickness.trim() + ' mm in thickness');
+      var line = lead.join(', ') + '.';
+      if (nodeState.detail && nodeState.detail.trim()) line += ' ' + nodeState.detail.trim();
+      lines.push(line);
+    });
+    return lines.join('\n');
+  }
+
+  return '';
 }
 
 function buildAscitesSentence(s){
@@ -1543,13 +1596,30 @@ function buildGallbladderSentence(s){
   var echoOpt = GALLBLADDER_ECHO_OPTS.filter(function(o){ return o.v === s.echo; })[0];
   if (echoOpt) wallFrags.push(echoOpt.v === 'normal' ? 'normal wall echogenicity' : echoOpt.t.toLowerCase());
   if (s.thickness && s.thickness.trim()) wallFrags.push('wall thickness ' + s.thickness.trim() + ' mm');
-  if (wallFrags.length) parts.push('Gallbladder shows ' + wallFrags.join(', ') + '.');
+  var conditionOpt = GALLBLADDER_STATUS_OPTS.filter(function(o){ return o.v === s.status; })[0];
+  if (conditionOpt && (conditionOpt.v === 'focal_thickening' || conditionOpt.v === 'generalized_thickening')) {
+    wallFrags.push(conditionOpt.t.toLowerCase());
+  }
+  var wallSentence = wallFrags.length ? 'Gallbladder shows ' + wallFrags.join(', ') : '';
 
   var contentOpt = GALLBLADDER_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
-  if (contentOpt) parts.push('Luminal content is ' + contentOpt.t.toLowerCase() + '.');
+  if (contentOpt) {
+    var contentConnector = (contentOpt.v === 'anechoic' || contentOpt.v === 'sludge') ? 'filled with ' + contentOpt.t.toLowerCase()
+      : contentOpt.v === 'mucocele' ? 'and contains immobile content with a stellate/kiwi-fruit pattern, consistent with mucocele'
+      : contentOpt.v === 'choleliths' ? 'and contains echogenic foci with posterior acoustic shadowing, consistent with cholelithiasis'
+      : '';
+    if (contentConnector) {
+      wallSentence = wallSentence ? (wallSentence + ' ' + contentConnector) : ('Gallbladder ' + contentConnector);
+    }
+  }
+
+  if (wallSentence) parts.push(wallSentence + '.');
+
+  var sludgeOpt = GALLBLADDER_SLUDGE_OPTS.filter(function(o){ return o.v === s.sludgeAmount; })[0];
+  if (sludgeOpt) parts.push(sludgeOpt.t + ' sludge noted.');
 
   var obstructionOpt = GALLBLADDER_OBSTRUCTION_OPTS.filter(function(o){ return o.v === s.obstruction; })[0];
-  if (obstructionOpt) {
+  if (obstructionOpt && obstructionOpt.v !== 'na') {
     parts.push(obstructionOpt.v === 'none' ? 'No evidence of biliary obstruction.' : obstructionOpt.t + ' noted, raising concern for obstruction.');
   }
 
@@ -1568,7 +1638,7 @@ function buildBiliarySentence(s){
   if (wallFrags.length) parts.push('Extrahepatic bile duct is ' + wallFrags.join(', ') + '.');
 
   var contentOpt = BILIARY_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
-  if (contentOpt) parts.push('Luminal content is ' + contentOpt.t.toLowerCase() + '.');
+  if (contentOpt) parts.push('Luminal content filled with ' + contentOpt.t.toLowerCase() + '.');
 
   var obstructionOpt = BILIARY_OBSTRUCTION_OPTS.filter(function(o){ return o.v === s.obstruction; })[0];
   if (obstructionOpt) {
@@ -1911,7 +1981,7 @@ function buildSidedSentence(o){
   return lines.join('\n');
 }
 
-function buildGISegmentSentence(segName, s){
+function buildGISegmentSentence(segName, s, cat){
   var parts = [];
 
   if (s.patency !== undefined) {
@@ -1979,12 +2049,14 @@ function buildGISegmentSentence(segName, s){
     }
   }
 
-  var peristalsisFrag = s.peristalsis === 'normal' ? 'Peristalsis is normal.'
-    : s.peristalsis === 'reduced' ? 'Peristalsis is reduced.'
-    : s.peristalsis === 'increased' ? 'Peristalsis is increased.'
-    : s.peristalsis === 'absent' ? 'Peristalsis is absent.'
-    : '';
-  if (peristalsisFrag) parts.push(peristalsisFrag);
+  if (!cat || !(cat.sharedPeristalsis || cat.noPeristalsis)) {
+    var peristalsisFrag = s.peristalsis === 'normal' ? 'Peristalsis is normal.'
+      : s.peristalsis === 'reduced' ? 'Peristalsis is reduced.'
+      : s.peristalsis === 'increased' ? 'Peristalsis is increased.'
+      : s.peristalsis === 'absent' ? 'Peristalsis is absent.'
+      : '';
+    if (peristalsisFrag) parts.push(peristalsisFrag);
+  }
 
   var contentsFrag = s.contents === 'unremarkable' ? 'Luminal contents are unremarkable.'
     : s.contents === 'fluid' ? 'Luminal contents are fluid-distended.'
@@ -1996,18 +2068,23 @@ function buildGISegmentSentence(segName, s){
   return parts.join(' ');
 }
 
-function isGISegmentNormal(s){
+function giSkipsSegmentPeristalsis(cat){
+  return !!(cat && (cat.sharedPeristalsis || cat.noPeristalsis));
+}
+
+function isGISegmentNormal(s, cat){
+  var skipPeristalsis = giSkipsSegmentPeristalsis(cat);
   if (s.patency !== undefined) {
     return s.patency === 'normal'
       && s.appearance === 'normal'
-      && s.peristalsis === 'normal'
+      && (skipPeristalsis || s.peristalsis === 'normal')
       && s.contents === 'unremarkable'
       && s.massPresent !== 'yes'
       && (!s.appearanceDetail || !s.appearanceDetail.trim());
   }
   return s.wallLayering === 'preserved'
     && s.layerPattern === 'proportionate'
-    && s.peristalsis === 'normal'
+    && (skipPeristalsis || s.peristalsis === 'normal')
     && s.contents === 'unremarkable'
     && s.massPresent !== 'yes'
     && (!s.totalThickness || !s.totalThickness.trim())
@@ -2024,21 +2101,37 @@ function buildGISentence(s){
       if (s.segmentIncluded && s.segmentIncluded[seg.key] === false) return;
       var segState = s.segments[seg.key];
       var segName = typeof seg.name === 'function' ? seg.name(getSpecies()) : seg.name;
-      if (isGISegmentNormal(segState)) {
+      if (isGISegmentNormal(segState, cat)) {
         normalNames.push(segName);
       } else {
-        var line = buildGISegmentSentence(segName, segState);
+        var line = buildGISegmentSentence(segName, segState, cat);
         if (line) abnormalLines.push(line);
       }
     });
     var catLines = [];
     if (normalNames.length) {
       var normalSummary = cat.isJunction
-        ? 'patent and normal in appearance. Peristalsis is normal. Luminal contents are unremarkable.'
-        : 'wall layering is preserved. Peristalsis is normal. Luminal contents are unremarkable.';
+        ? 'patent and normal in appearance.' + (giSkipsSegmentPeristalsis(cat) ? '' : ' Peristalsis is normal.') + ' Luminal contents are unremarkable.'
+        : 'wall layering is preserved.' + (giSkipsSegmentPeristalsis(cat) ? '' : ' Peristalsis is normal.') + ' Luminal contents are unremarkable.';
       catLines.push(normalNames.join(', ') + ': ' + normalSummary);
     }
     abnormalLines.forEach(function(l){ catLines.push(l); });
+
+    if (cat.sharedPeristalsis) {
+      var catPeristalsis = s.categoryPeristalsis ? s.categoryPeristalsis[cat.key] : '';
+      var catPeristalsisFrag = catPeristalsis === 'normal' ? cat.label + ' peristalsis is normal.'
+        : catPeristalsis === 'reduced' ? cat.label + ' peristalsis is reduced.'
+        : catPeristalsis === 'increased' ? cat.label + ' peristalsis is increased.'
+        : catPeristalsis === 'absent' ? cat.label + ' peristalsis is absent.'
+        : '';
+      if (catPeristalsisFrag) catLines.push(catPeristalsisFrag);
+    }
+
+    if (cat.ingestaFlag) {
+      var catIngesta = s.categoryIngesta ? s.categoryIngesta[cat.key] : '';
+      if (catIngesta === 'yes') catLines.push('Gastric ingesta noted, precluding full assessment of the stomach wall.');
+    }
+
     if (catLines.length) blocks.push(catLines.join('\n'));
   });
   if (s.extra && s.extra.trim()) blocks.push(s.extra.trim());
@@ -2084,6 +2177,22 @@ function renderGISection(o, s, section){
       });
       row.appendChild(chipWrap);
       container.appendChild(row);
+    }
+
+    if (isOpen && cat.sharedPeristalsis) {
+      if (!state[o.id].categoryPeristalsis) state[o.id].categoryPeristalsis = {};
+      giChipRow(catWrap, 'Peristalsis (overall)', GI_PERISTALSIS_OVERALL_OPTS,
+        function(){ return state[o.id].categoryPeristalsis[cat.key] || ''; },
+        function(v){ state[o.id].categoryPeristalsis[cat.key] = v; }
+      );
+    }
+
+    if (isOpen && cat.ingestaFlag) {
+      if (!state[o.id].categoryIngesta) state[o.id].categoryIngesta = {};
+      giChipRow(catWrap, 'Ingesta obscuring view', GI_MASS_PRESENT_OPTS,
+        function(){ return state[o.id].categoryIngesta[cat.key] || ''; },
+        function(v){ state[o.id].categoryIngesta[cat.key] = v; }
+      );
     }
 
     if (isOpen) {
@@ -2349,10 +2458,12 @@ function renderGISection(o, s, section){
           segWrap.appendChild(mdField);
         }
 
-        giChipRow(segWrap, 'Peristalsis', GI_PERISTALSIS_OPTS,
-          function(){ return segState.peristalsis; },
-          function(v){ state[o.id].segments[seg.key].peristalsis = v; }
-        );
+        if (!giSkipsSegmentPeristalsis(cat)) {
+          giChipRow(segWrap, 'Peristalsis', GI_PERISTALSIS_OPTS,
+            function(){ return segState.peristalsis; },
+            function(v){ state[o.id].segments[seg.key].peristalsis = v; }
+          );
+        }
 
         giChipRow(segWrap, 'Luminal contents', GI_CONTENTS_OPTS,
           function(){ return segState.contents; },
@@ -2515,70 +2626,109 @@ function renderLymphSection(o, s, section){
     section.appendChild(row);
   }
 
+  function multiChipRow(labelText, options, getValues, toggleValue){
+    var row = document.createElement('div');
+    row.className = 'attr-row';
+    var label = document.createElement('span');
+    label.className = 'attr-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+    var chipWrap = document.createElement('div');
+    chipWrap.className = 'chip-wrap';
+    options.forEach(function(opt){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (getValues().indexOf(opt.v) !== -1 ? ' active' : '');
+      chip.textContent = opt.t;
+      chip.addEventListener('click', function(){
+        toggleValue(opt.v);
+        if (state[o.id]) state[o.id].textDirty = false;
+        renderOrgans();
+      });
+      chipWrap.appendChild(chip);
+    });
+    row.appendChild(chipWrap);
+    section.appendChild(row);
+  }
+
+  // Defensive guards for backward compatibility with older saved reports.
+  if (!state[o.id].selectedNodes) state[o.id].selectedNodes = [];
+  if (!state[o.id].nodes) state[o.id].nodes = {};
+  LYMPH_NODE_LIST.forEach(function(n){
+    if (!state[o.id].nodes[n.key]) state[o.id].nodes[n.key] = freshLymphNodeEntryState();
+  });
+
   chipRow('Size', LYMPH_SIZE_OPTS, function(){ return s.size; }, function(v){ state[o.id].size = v; });
 
   if (s.size === 'enlarged') {
-    var locField = document.createElement('div');
-    locField.className = 'field';
-    locField.style.marginTop = '6px';
-    var locLabel = document.createElement('label');
-    locLabel.textContent = 'Location';
-    locField.appendChild(locLabel);
-    var locInput = document.createElement('input');
-    locInput.type = 'text';
-    locInput.placeholder = 'e.g. Jejunal / mesenteric lymph node';
-    locInput.value = s.location || '';
-    locInput.addEventListener('input', function(){
-      state[o.id].location = locInput.value;
-      if (!s.textDirty) {
-        textArea.value = buildLymphSentence(state[o.id]);
-        autoResize(textArea);
+    multiChipRow('Enlarged lymph node(s)', LYMPH_NODE_LIST.map(function(n){ return { v: n.key, t: n.label }; }),
+      function(){ return s.selectedNodes || []; },
+      function(v){
+        var arr = state[o.id].selectedNodes;
+        var idx = arr.indexOf(v);
+        if (idx === -1) arr.push(v); else arr.splice(idx, 1);
       }
-    });
-    locField.appendChild(locInput);
-    section.appendChild(locField);
+    );
 
-    chipRow('Echogenicity', LYMPH_ECHO_OPTS, function(){ return s.echo; }, function(v){ state[o.id].echo = v; });
+    LYMPH_NODE_LIST.forEach(function(n){
+      if ((s.selectedNodes || []).indexOf(n.key) === -1) return;
+      var nodeState = s.nodes[n.key];
 
-    var thField = document.createElement('div');
-    thField.className = 'field';
-    thField.style.marginTop = '6px';
-    var thLabel = document.createElement('label');
-    thLabel.textContent = 'Thickness (mm)';
-    thField.appendChild(thLabel);
-    var thInput = document.createElement('input');
-    thInput.type = 'text';
-    thInput.placeholder = 'e.g. 8';
-    thInput.value = s.thickness || '';
-    thInput.addEventListener('input', function(){
-      state[o.id].thickness = thInput.value;
-      if (!s.textDirty) {
-        textArea.value = buildLymphSentence(state[o.id]);
-        autoResize(textArea);
-      }
-    });
-    thField.appendChild(thInput);
-    section.appendChild(thField);
+      var nodeCard = document.createElement('div');
+      nodeCard.style.borderTop = '0.5px solid var(--border, #ddd)';
+      nodeCard.style.paddingTop = '10px';
+      nodeCard.style.marginTop = '10px';
 
-    var dtField = document.createElement('div');
-    dtField.className = 'field';
-    dtField.style.marginTop = '6px';
-    var dtLabel = document.createElement('label');
-    dtLabel.textContent = 'Additional detailed description';
-    dtField.appendChild(dtLabel);
-    var dtInput = document.createElement('input');
-    dtInput.type = 'text';
-    dtInput.placeholder = 'e.g. loss of normal hilar architecture, rounded contour';
-    dtInput.value = s.detail || '';
-    dtInput.addEventListener('input', function(){
-      state[o.id].detail = dtInput.value;
-      if (!s.textDirty) {
-        textArea.value = buildLymphSentence(state[o.id]);
-        autoResize(textArea);
-      }
+      var nodeTitle = document.createElement('div');
+      nodeTitle.style.fontWeight = '500';
+      nodeTitle.style.fontSize = '13px';
+      nodeTitle.style.marginBottom = '6px';
+      nodeTitle.textContent = n.label;
+      nodeCard.appendChild(nodeTitle);
+      section.appendChild(nodeCard);
+
+      chipRow('Echogenicity', LYMPH_ECHO_OPTS, function(){ return nodeState.echo; }, function(v){ state[o.id].nodes[n.key].echo = v; });
+
+      var thField = document.createElement('div');
+      thField.className = 'field';
+      thField.style.marginTop = '6px';
+      var thLabel = document.createElement('label');
+      thLabel.textContent = 'Thickness (mm)';
+      thField.appendChild(thLabel);
+      var thInput = document.createElement('input');
+      thInput.type = 'text';
+      thInput.placeholder = 'e.g. 8';
+      thInput.value = nodeState.thickness || '';
+      thInput.addEventListener('input', function(){
+        state[o.id].nodes[n.key].thickness = thInput.value;
+        if (!s.textDirty) {
+          textArea.value = buildLymphSentence(state[o.id]);
+          autoResize(textArea);
+        }
+      });
+      thField.appendChild(thInput);
+      section.appendChild(thField);
+
+      var dtField = document.createElement('div');
+      dtField.className = 'field';
+      dtField.style.marginTop = '6px';
+      var dtLabel = document.createElement('label');
+      dtLabel.textContent = 'Additional detail';
+      dtField.appendChild(dtLabel);
+      var dtInput = document.createElement('input');
+      dtInput.type = 'text';
+      dtInput.placeholder = 'e.g. loss of normal hilar architecture, rounded contour';
+      dtInput.value = nodeState.detail || '';
+      dtInput.addEventListener('input', function(){
+        state[o.id].nodes[n.key].detail = dtInput.value;
+        if (!s.textDirty) {
+          textArea.value = buildLymphSentence(state[o.id]);
+          autoResize(textArea);
+        }
+      });
+      dtField.appendChild(dtInput);
+      section.appendChild(dtField);
     });
-    dtField.appendChild(dtInput);
-    section.appendChild(dtField);
   }
 
   var textAreaLabel = document.createElement('div');
@@ -3024,9 +3174,10 @@ function renderGallbladderSection(o, s, section){
     section.appendChild(field);
   }
 
-  chipRow('Status', GALLBLADDER_STATUS_OPTS, function(){ return s.status; }, function(v){ state[o.id].status = v; });
+  chipRow('GB Wall Condition', GALLBLADDER_STATUS_OPTS, function(){ return s.status; }, function(v){ state[o.id].status = v; });
   textField('Wall thickness (mm)', 'e.g. 1.5', function(){ return s.thickness; }, function(v){ state[o.id].thickness = v; });
   chipRow('Wall Echogenicity', GALLBLADDER_ECHO_OPTS, function(){ return s.echo; }, function(v){ state[o.id].echo = v; });
+  chipRow('Sludge Amount', GALLBLADDER_SLUDGE_OPTS, function(){ return s.sludgeAmount; }, function(v){ state[o.id].sludgeAmount = v; });
   chipRow('Content', GALLBLADDER_CONTENT_OPTS, function(){ return s.content; }, function(v){ state[o.id].content = v; });
   chipRow('Evidence of obstruction', GALLBLADDER_OBSTRUCTION_OPTS, function(){ return s.obstruction; }, function(v){ state[o.id].obstruction = v; });
   textField('Additional notes', 'e.g. pericholecystic fluid noted', function(){ return s.detail; }, function(v){ state[o.id].detail = v; });
