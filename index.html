@@ -868,6 +868,26 @@ var ATTR_DEFS = {
   ]}
 };
 
+var KIDNEY_CALCULI_OPTS = [
+  { v: 'none', t: 'None' },
+  { v: 'single', t: 'Single' },
+  { v: 'multiple', t: 'Multiple' }
+];
+var KIDNEY_CALCULI_LOCATION_OPTS = [
+  { v: 'pelvis', t: 'Renal pelvis', frag: 'renal pelvis' },
+  { v: 'parenchyma', t: 'Parenchyma', frag: 'parenchyma' },
+  { v: 'diverticulum', t: 'Diverticulum', frag: 'diverticulum' }
+];
+var KIDNEY_CALCULI_SHADOWING_OPTS = [
+  { v: 'yes', t: 'Yes' },
+  { v: 'no', t: 'No' }
+];
+var KIDNEY_CYST_OPTS = [
+  { v: 'none', t: 'None' },
+  { v: 'single', t: 'Single' },
+  { v: 'multiple', t: 'Multiple' }
+];
+
 var HOMOHETERO_ECHO_OPTIONS = [
   { v: 'na', t: 'N/A', frag: '' },
   { v: 'normal', t: 'Normal', frag: 'with normal parenchymal echogenicity' },
@@ -1180,7 +1200,9 @@ var ORGANS = [
     measurements: [
       { key: 'length', label: 'Length', unit: 'cm' },
       { key: 'pelvis', label: 'Renal pelvis width', unit: 'cm' }
-    ]
+    ],
+    calculiOptions: KIDNEY_CALCULI_OPTS,
+    cystOptions: KIDNEY_CYST_OPTS
   },
   { id: 'ureters', name: 'Ureters', custom: 'ureters' },
   { id: 'bladder', name: 'Urinary bladder', extraLabel: 'Additional notes', custom: 'bladder' },
@@ -1204,10 +1226,10 @@ var ORGANS = [
 ];
 
 function freshOrganState(){
-  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal' };
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal', calculi: 'none', calculiSize: '', calculiLocation: [], calculiShadowing: '', cyst: 'none', cystSize: '' };
 }
 function freshSideState(){
-  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal' };
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal', calculi: 'none', calculiSize: '', calculiLocation: [], calculiShadowing: '', cyst: 'none', cystSize: '' };
 }
 function freshSidedOrganState(){
   return { activeSide: 'left', left: freshSideState(), right: freshSideState(), extra: '' };
@@ -1924,6 +1946,37 @@ function buildSentence(organName, s, measurementsDefs, echoOptions, o){
   if (distOpt && distOpt.frag) parts.push(distOpt.frag);
   if ((s.dist === 'focal' || s.dist === 'diffuse') && s.lesionDetail && s.lesionDetail.trim()) {
     parts.push(s.lesionDetail.trim());
+  }
+
+  if (o && o.calculiOptions) {
+    if (s.calculi === 'single' || s.calculi === 'multiple') {
+      var calcFrag = s.calculi === 'single' ? 'Renal calculus is noted' : 'Multiple renal calculi are noted';
+
+      var calcLocationFrags = attrValuesOf(s, 'calculiLocation').map(function(v){
+        var lo = KIDNEY_CALCULI_LOCATION_OPTS.filter(function(x){ return x.v === v; })[0];
+        return lo ? lo.frag : '';
+      }).filter(Boolean);
+      if (calcLocationFrags.length) calcFrag += ' in the ' + joinList(calcLocationFrags);
+
+      if (s.calculiSize && s.calculiSize.trim()) calcFrag += ', measuring up to ' + s.calculiSize.trim() + ' mm';
+
+      if (s.calculiShadowing === 'yes') calcFrag += ', with posterior acoustic shadowing';
+      else if (s.calculiShadowing === 'no') calcFrag += ', without posterior acoustic shadowing';
+
+      parts.push(calcFrag + '.');
+    } else if (s.calculi === 'none') {
+      parts.push('No calculi are identified.');
+    }
+  }
+
+  if (o && o.cystOptions) {
+    if (s.cyst === 'single' || s.cyst === 'multiple') {
+      var cystFrag = s.cyst === 'single' ? 'A renal cyst is noted' : 'Multiple renal cysts are noted';
+      if (s.cystSize && s.cystSize.trim()) cystFrag += ', measuring up to ' + s.cystSize.trim() + ' mm';
+      parts.push(cystFrag + '.');
+    } else if (s.cyst === 'none') {
+      parts.push('No renal cysts are identified.');
+    }
   }
 
   if (o && o.extraAttrs) {
@@ -3694,6 +3747,153 @@ function renderOrgans(){
         body.appendChild(sdField);
       }
     });
+
+    if (o.calculiOptions) {
+      var calcRow = document.createElement('div');
+      calcRow.className = 'attr-row';
+      var calcLabel = document.createElement('span');
+      calcLabel.className = 'attr-label';
+      calcLabel.textContent = 'Calculi';
+      calcRow.appendChild(calcLabel);
+      var calcChipWrap = document.createElement('div');
+      calcChipWrap.className = 'chip-wrap';
+      o.calculiOptions.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (activeState.calculi === opt.v ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.calculi = opt.v;
+          if (state[o.id]) state[o.id].textDirty = false;
+          renderOrgans();
+        });
+        calcChipWrap.appendChild(chip);
+      });
+      calcRow.appendChild(calcChipWrap);
+      body.appendChild(calcRow);
+
+      if (activeState.calculi === 'single' || activeState.calculi === 'multiple') {
+        var calcSizeField = document.createElement('div');
+        calcSizeField.className = 'field';
+        calcSizeField.style.marginTop = '6px';
+        var calcSizeLabel = document.createElement('label');
+        calcSizeLabel.textContent = 'Calculus size (mm)';
+        calcSizeField.appendChild(calcSizeLabel);
+        var calcSizeInput = document.createElement('input');
+        calcSizeInput.type = 'text';
+        calcSizeInput.placeholder = 'e.g. 4';
+        calcSizeInput.value = activeState.calculiSize || '';
+        calcSizeInput.addEventListener('input', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.calculiSize = calcSizeInput.value;
+          if (!s.textDirty) {
+            textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, target), getEchoOptionsFor(o), o);
+            autoResize(textArea);
+          }
+        });
+        calcSizeField.appendChild(calcSizeInput);
+        body.appendChild(calcSizeField);
+
+        var calcLocRow = document.createElement('div');
+        calcLocRow.className = 'attr-row';
+        var calcLocLabel = document.createElement('span');
+        calcLocLabel.className = 'attr-label';
+        calcLocLabel.textContent = 'Location';
+        calcLocRow.appendChild(calcLocLabel);
+        var calcLocChipWrap = document.createElement('div');
+        calcLocChipWrap.className = 'chip-wrap';
+        var selectedCalcLocations = attrValuesOf(activeState, 'calculiLocation');
+        KIDNEY_CALCULI_LOCATION_OPTS.forEach(function(opt){
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'chip' + (selectedCalcLocations.indexOf(opt.v) !== -1 ? ' active' : '');
+          chip.textContent = opt.t;
+          chip.addEventListener('click', function(){
+            var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+            target.calculiLocation = toggleMultiValue(attrValuesOf(target, 'calculiLocation'), opt.v);
+            if (state[o.id]) state[o.id].textDirty = false;
+            renderOrgans();
+          });
+          calcLocChipWrap.appendChild(chip);
+        });
+        calcLocRow.appendChild(calcLocChipWrap);
+        body.appendChild(calcLocRow);
+
+        var calcShadowRow = document.createElement('div');
+        calcShadowRow.className = 'attr-row';
+        var calcShadowLabel = document.createElement('span');
+        calcShadowLabel.className = 'attr-label';
+        calcShadowLabel.textContent = 'Acoustic shadowing';
+        calcShadowRow.appendChild(calcShadowLabel);
+        var calcShadowChipWrap = document.createElement('div');
+        calcShadowChipWrap.className = 'chip-wrap';
+        KIDNEY_CALCULI_SHADOWING_OPTS.forEach(function(opt){
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'chip' + (activeState.calculiShadowing === opt.v ? ' active' : '');
+          chip.textContent = opt.t;
+          chip.addEventListener('click', function(){
+            var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+            target.calculiShadowing = opt.v;
+            if (state[o.id]) state[o.id].textDirty = false;
+            renderOrgans();
+          });
+          calcShadowChipWrap.appendChild(chip);
+        });
+        calcShadowRow.appendChild(calcShadowChipWrap);
+        body.appendChild(calcShadowRow);
+      }
+    }
+
+    if (o.cystOptions) {
+      var cystRow = document.createElement('div');
+      cystRow.className = 'attr-row';
+      var cystLabel = document.createElement('span');
+      cystLabel.className = 'attr-label';
+      cystLabel.textContent = 'Cyst';
+      cystRow.appendChild(cystLabel);
+      var cystChipWrap = document.createElement('div');
+      cystChipWrap.className = 'chip-wrap';
+      o.cystOptions.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (activeState.cyst === opt.v ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.cyst = opt.v;
+          if (state[o.id]) state[o.id].textDirty = false;
+          renderOrgans();
+        });
+        cystChipWrap.appendChild(chip);
+      });
+      cystRow.appendChild(cystChipWrap);
+      body.appendChild(cystRow);
+
+      if (activeState.cyst === 'single' || activeState.cyst === 'multiple') {
+        var cystSizeField = document.createElement('div');
+        cystSizeField.className = 'field';
+        cystSizeField.style.marginTop = '6px';
+        var cystSizeLabel = document.createElement('label');
+        cystSizeLabel.textContent = 'Cyst size (mm)';
+        cystSizeField.appendChild(cystSizeLabel);
+        var cystSizeInput = document.createElement('input');
+        cystSizeInput.type = 'text';
+        cystSizeInput.placeholder = 'e.g. 6';
+        cystSizeInput.value = activeState.cystSize || '';
+        cystSizeInput.addEventListener('input', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.cystSize = cystSizeInput.value;
+          if (!s.textDirty) {
+            textArea.value = o.sides ? buildSidedSentence(o) : buildSentence(o.name, state[o.id], getAllMeasurementsFor(o, target), getEchoOptionsFor(o), o);
+            autoResize(textArea);
+          }
+        });
+        cystSizeField.appendChild(cystSizeInput);
+        body.appendChild(cystSizeField);
+      }
+    }
 
     if (activeState.dist === 'focal' || activeState.dist === 'diffuse') {
       var lesionField = document.createElement('div');
