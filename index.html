@@ -47,33 +47,33 @@
     --shadow-md: 0 4px 12px rgba(60,45,20,0.07), 0 2px 4px rgba(60,45,20,0.05);
   }
   [data-theme="dark"] {
-    --bg: #1b1611;
-    --surface: #241d16;
-    --surface-alt: #2e251a;
-    --text: #f2e8d8;
-    --text-muted: #b3a086;
-    --text-faint: #8a7a63;
-    --border: #4a3c2a;
-    --border-soft: #3d3122;
-    --border-softer: #362b1e;
-    --accent: #e6a83c;
-    --accent-bg: #3d2f16;
-    --accent-text: #f3c877;
+    --bg: #171513;
+    --surface: #221f1c;
+    --surface-alt: #2b2723;
+    --text: #ebe6de;
+    --text-muted: #a39b8f;
+    --text-faint: #7d766a;
+    --border: #3a352f;
+    --border-soft: #2e2a25;
+    --border-softer: #282420;
+    --accent: #d4a24a;
+    --accent-bg: #3d3018;
+    --accent-text: #eec87a;
     --danger: #e0685a;
     --danger-bg: #3a2323;
     --danger-border: #5a3230;
-    --organ-text-bg: #33280f;
-    --organ-text-border: #4d3c17;
-    --organ-text-label: #e0b84f;
+    --organ-text-bg: #2f2610;
+    --organ-text-border: #4a3a1c;
+    --organ-text-label: #d9ac52;
     --modal-overlay: rgba(0,0,0,0.6);
-    --warning-bg: #332a1c;
-    --warning-border: #4d3c17;
-    --action-bg: #e6a83c;
-    --action-text: #241a08;
+    --warning-bg: #2e2820;
+    --warning-border: #453a26;
+    --action-bg: #d4a24a;
+    --action-text: #201a10;
     --shadow: rgba(0,0,0,0.5);
-    --login-bg: linear-gradient(135deg, #221a10 0%, #1b1611 45%, #1e1811 100%);
-    --login-input-bg: #2e251a;
-    --login-submit-bg: linear-gradient(135deg, #3a2f1f, #241d16);
+    --login-bg: linear-gradient(135deg, #1d1a15 0%, #171513 45%, #191712 100%);
+    --login-input-bg: #2b2723;
+    --login-submit-bg: linear-gradient(135deg, #332e26, #221f1c);
     --radius-sm: 8px;
     --radius-md: 12px;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.35);
@@ -87,7 +87,38 @@
     margin: 0;
     padding: 24px;
   }
-  .wrap { max-width: 1280px; margin: 0 auto; }
+  .app-shell { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; gap: 24px; }
+  .wrap { flex: 1 1 auto; min-width: 0; }
+  .organ-nav {
+    flex: 0 0 190px;
+    position: sticky;
+    top: var(--sticky-offset, 90px);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px;
+  }
+  .organ-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    border-radius: 7px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .organ-nav-item:hover { background: var(--surface-alt); color: var(--text); }
+  .organ-nav-item.current { background: var(--accent-bg); color: var(--accent-text); font-weight: 600; }
+  .organ-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .organ-nav-dot.filled { background: var(--accent); }
+  @media (max-width: 1180px) {
+    .organ-nav { display: none; }
+  }
+  [id^="organ-"] { scroll-margin-top: var(--sticky-offset, 90px); }
   h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 4px; }
   .subtitle { color: var(--text-muted); font-size: 13.5px; margin: 0 0 20px; }
   .card {
@@ -781,7 +812,9 @@
 
 <button class="feedback-fab no-print" id="feedbackFab">💬 Feedback</button>
 
-<div class="wrap no-print">
+<div class="app-shell no-print">
+<nav class="organ-nav no-print" id="organNav"></nav>
+<div class="wrap">
   <div class="topbar">
     <span id="userEmailLabel"></span>
     <button class="action secondary" id="themeToggleBtn" style="padding:4px 10px; font-size:12px;">🌙 Dark mode</button>
@@ -862,6 +895,7 @@
     <textarea id="f_recs" rows="2" placeholder="Additional comments, follow-up recommendations, etc."></textarea>
   </div>
 </div>
+</div>
 
 <div class="print-view">
   <h1>Abdominal Ultrasound Report</h1>
@@ -898,6 +932,7 @@ function showApp(session){
   document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
   autoResize(document.getElementById('f_history'));
   autoResize(document.getElementById('f_recs'));
+  updateStickyOffset();
 }
 
 function showLogin(){
@@ -1022,7 +1057,7 @@ var HOMOHETERO_ECHO_OPTIONS = [
 
 var LIVER_SPLEEN_MARGINS_OPTIONS = [
   { v: 'na', t: 'N/A', adj: '' },
-  { v: 'smooth', t: 'Smooth', adj: 'smooth and well defined' },
+  { v: 'smooth', t: 'Smooth', adj: 'smooth, well-defined' },
   { v: 'irregular', t: 'Irregular', adj: 'irregular' },
   { v: 'sharp', t: 'Sharp', adj: 'sharp' },
   { v: 'rounded', t: 'Rounded', adj: 'rounded' }
@@ -1697,7 +1732,7 @@ function buildLymphSentence(s){
       }).filter(Boolean);
       if (echoLabels.length) lead.push(joinList(echoLabels) + ' in echogenicity');
       var line = lead.join(', ');
-      if (nodeState.thickness && nodeState.thickness.trim()) line += ' (' + nodeState.thickness.trim() + ' mm in thickness)';
+      if (nodeState.thickness && nodeState.thickness.trim()) line += ' (' + nodeState.thickness.trim() + ' mm short-axis diameter)';
       line += '.';
       if (nodeState.detail && nodeState.detail.trim()) line += ' ' + nodeState.detail.trim();
       lines.push(line);
@@ -1756,19 +1791,27 @@ function buildGallbladderSentence(s){
   if (echoOpt) wallFrags.push(echoOpt.v === 'normal' ? 'normal wall echogenicity' : echoOpt.t.toLowerCase());
   if (s.thickness && s.thickness.trim()) wallFrags.push('wall thickness ' + s.thickness.trim() + ' mm');
   var conditionOpt = GALLBLADDER_STATUS_OPTS.filter(function(o){ return o.v === s.status; })[0];
-  if (conditionOpt && (conditionOpt.v === 'focal_thickening' || conditionOpt.v === 'generalized_thickening')) {
+  if (conditionOpt && conditionOpt.v === 'abnormal') {
+    wallFrags.push('abnormal wall appearance');
+  } else if (conditionOpt && (conditionOpt.v === 'focal_thickening' || conditionOpt.v === 'generalized_thickening')) {
     wallFrags.push(conditionOpt.t.toLowerCase());
   }
   var wallSentence = wallFrags.length ? 'Gallbladder shows ' + wallFrags.join(', ') : '';
 
   var contentOpt = GALLBLADDER_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
   if (contentOpt) {
+    var isMucocele = contentOpt.v === 'mucocele';
+    var isCholeliths = contentOpt.v === 'choleliths';
     var contentConnector = (contentOpt.v === 'anechoic' || contentOpt.v === 'sludge') ? 'filled with ' + contentOpt.t.toLowerCase()
-      : contentOpt.v === 'mucocele' ? 'and contains immobile content with a stellate/kiwi-fruit pattern, consistent with mucocele'
-      : contentOpt.v === 'choleliths' ? 'and contains echogenic foci with posterior acoustic shadowing, consistent with cholelithiasis'
+      : isMucocele ? 'contains immobile content with a stellate/kiwi-fruit pattern, consistent with mucocele'
+      : isCholeliths ? 'contains echogenic foci with posterior acoustic shadowing, consistent with cholelithiasis'
       : '';
     if (contentConnector) {
-      wallSentence = wallSentence ? (wallSentence + ' ' + contentConnector) : ('Gallbladder ' + contentConnector);
+      if (wallSentence) {
+        wallSentence += (isMucocele || isCholeliths) ? ' and ' + contentConnector : ' ' + contentConnector;
+      } else {
+        wallSentence = 'Gallbladder ' + contentConnector;
+      }
     }
   }
 
@@ -1797,7 +1840,10 @@ function buildBiliarySentence(s){
   if (wallFrags.length) parts.push('Extrahepatic bile duct is ' + wallFrags.join(', ') + '.');
 
   var contentOpt = BILIARY_CONTENT_OPTS.filter(function(o){ return o.v === s.content; })[0];
-  if (contentOpt) parts.push('Luminal content filled with ' + contentOpt.t.toLowerCase() + '.');
+  if (contentOpt) {
+    var contentText = contentOpt.v === 'choleliths' ? 'choleliths' : contentOpt.t.toLowerCase();
+    parts.push('Luminal content filled with ' + contentText + '.');
+  }
 
   var obstructionOpt = BILIARY_OBSTRUCTION_OPTS.filter(function(o){ return o.v === s.obstruction; })[0];
   if (obstructionOpt) {
@@ -1863,8 +1909,9 @@ function buildGenitalSentence(s){
     var p = s.prostate;
     var pParenchymaFrag = p.parenchyma === 'normal' ? 'homogeneous echogenicity'
       : p.parenchyma === 'heterogeneous' ? 'heterogeneous echogenicity'
-      : p.parenchyma === 'mineralization' ? 'mineralization noted within the parenchyma'
-      : p.parenchyma === 'cystic' ? 'a cystic structure noted within the parenchyma'
+      : '';
+    var pParenchymaClause = p.parenchyma === 'mineralization' ? 'Mineralization is noted within the parenchyma.'
+      : p.parenchyma === 'cystic' ? 'A cystic structure is noted within the parenchyma.'
       : '';
     var pSizeFrag = p.size === 'normal' ? 'normal in size' : p.size === 'enlarged' ? 'enlarged' : '';
     if (pSizeFrag && p.length && p.length.trim()) pSizeFrag += ' (' + p.length.trim() + ' cm)';
@@ -1872,6 +1919,7 @@ function buildGenitalSentence(s){
     if (pSizeFrag) pLead.push(pSizeFrag);
     if (pParenchymaFrag) pLead.push(pParenchymaFrag);
     if (pLead.length) pParts.push('Prostate is ' + pLead.join(', ') + '.');
+    if (pParenchymaClause) pParts.push(pParenchymaClause);
 
     if (p.margins === 'smooth') pParts.push('Margins are smooth and well defined.');
     else if (p.margins === 'irregular') pParts.push('Margins are irregular.');
@@ -1947,9 +1995,8 @@ function buildGenitalSentence(s){
   return lines.join('\n');
 }
 
-var state = {};
-ORGANS.forEach(function(o){
-  state[o.id] = o.custom === 'bladder' ? freshBladderState() :
+function freshStateFor(o){
+  return o.custom === 'bladder' ? freshBladderState() :
     (o.custom === 'gi' ? freshGIState() :
     (o.custom === 'lymph' ? freshLymphState() :
     (o.custom === 'ascites' ? freshAscitesState() :
@@ -1959,6 +2006,11 @@ ORGANS.forEach(function(o){
     (o.custom === 'biliary' ? freshBiliaryState() :
     (o.custom === 'ureters' ? freshUretersState() :
     (o.sides ? freshSidedOrganState() : freshOrganState())))))))));
+}
+
+var state = {};
+ORGANS.forEach(function(o){
+  state[o.id] = freshStateFor(o);
 });
 
 var organIncluded = {};
@@ -1981,6 +2033,82 @@ function renderOrganToggle(){
     });
     organToggleEl.appendChild(chip);
   });
+}
+
+function buildTextFor(o, st){
+  if (o.custom === 'bladder') return buildBladderSentence(st);
+  if (o.custom === 'gi') return buildGISentence(st);
+  if (o.custom === 'lymph') return buildLymphSentence(st);
+  if (o.custom === 'ascites') return buildAscitesSentence(st);
+  if (o.custom === 'vasculature') return buildVasculatureSentence(st);
+  if (o.custom === 'genital') return buildGenitalSentence(st);
+  if (o.custom === 'gallbladder') return buildGallbladderSentence(st);
+  if (o.custom === 'biliary') return buildBiliarySentence(st);
+  if (o.custom === 'ureters') return buildUretersSentence(st);
+  if (o.sides) {
+    var prev = state[o.id];
+    state[o.id] = st;
+    var text = buildSidedSentence(o);
+    state[o.id] = prev;
+    return text;
+  }
+  return buildSentence(o.name, st, getAllMeasurementsFor(o, st), getEchoOptionsFor(o), o);
+}
+
+function isOrganModified(o){
+  var current = state[o.id].textDirty ? state[o.id].customText : buildTextFor(o, state[o.id]);
+  var normalText = buildTextFor(o, freshStateFor(o));
+  return (current || '').trim() !== (normalText || '').trim();
+}
+
+var organNavEl = document.getElementById('organNav');
+var organNavObserver = null;
+
+function setupOrganNavScrollSpy(){
+  if (organNavObserver) organNavObserver.disconnect();
+  var targets = ORGANS.filter(function(o){ return organIncluded[o.id]; })
+    .map(function(o){ return document.getElementById('organ-' + o.id); })
+    .filter(Boolean);
+  if (!targets.length) return;
+  organNavObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (!entry.isIntersecting) return;
+      var link = organNavEl.querySelector('.organ-nav-item[href="#' + entry.target.id + '"]');
+      if (!link) return;
+      Array.from(organNavEl.querySelectorAll('.organ-nav-item')).forEach(function(a){ a.classList.remove('current'); });
+      link.classList.add('current');
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  targets.forEach(function(t){ organNavObserver.observe(t); });
+}
+
+function renderOrganNav(){
+  if (!organNavEl) return;
+  organNavEl.innerHTML = '';
+  ORGANS.forEach(function(o){
+    if (!organIncluded[o.id]) return;
+    var a = document.createElement('a');
+    a.className = 'organ-nav-item';
+    a.href = '#organ-' + o.id;
+    var dot = document.createElement('span');
+    dot.className = 'organ-nav-dot' + (isOrganModified(o) ? ' filled' : '');
+    a.appendChild(dot);
+    var label = document.createElement('span');
+    label.textContent = o.name;
+    a.appendChild(label);
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var target = document.getElementById('organ-' + o.id);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    organNavEl.appendChild(a);
+  });
+  setupOrganNavScrollSpy();
+}
+
+function updateStickyOffset(){
+  var sc = document.querySelector('.sticky-controls');
+  if (sc) document.documentElement.style.setProperty('--sticky-offset', (sc.offsetHeight + 12) + 'px');
 }
 
 function attrValuesOf(stateObj, key){
@@ -2089,7 +2217,7 @@ function buildSentence(organName, s, measurementsDefs, echoOptions, o){
 
   if (o && o.calculiOptions) {
     if (s.calculi === 'single' || s.calculi === 'multiple') {
-      var calcFrag = s.calculi === 'single' ? 'Renal calculus is noted' : 'Multiple renal calculi are noted';
+      var calcFrag = s.calculi === 'single' ? 'A renal calculus is noted' : 'Multiple renal calculi are noted';
 
       var calcLocationFrags = attrValuesOf(s, 'calculiLocation').map(function(v){
         var lo = KIDNEY_CALCULI_LOCATION_OPTS.filter(function(x){ return x.v === v; })[0];
@@ -2199,11 +2327,9 @@ function buildGISegmentSentence(segName, s, cat){
       : s.wallLayering === 'focal' ? 'wall layering shows focal loss'
       : s.wallLayering === 'diffuse' ? 'wall layering shows diffuse loss'
       : '';
-    var thicknessFrag = (s.totalThickness && s.totalThickness.trim()) ? ('total thickness measures ' + s.totalThickness.trim() + ' mm') : '';
-    var lead = [];
-    if (layeringFrag) lead.push(layeringFrag);
-    if (thicknessFrag) lead.push(thicknessFrag);
-    if (lead.length) parts.push(segName + ' ' + lead.join(', ') + '.');
+    var thicknessFrag = (s.totalThickness && s.totalThickness.trim()) ? ('Total thickness measures ' + s.totalThickness.trim() + ' mm.') : '';
+    if (layeringFrag) parts.push(segName + ' ' + layeringFrag + '.');
+    if (thicknessFrag) parts.push(thicknessFrag);
 
     if ((s.wallLayering === 'focal' || s.wallLayering === 'diffuse') && s.wallLayeringDetail && s.wallLayeringDetail.trim()) {
       parts.push(s.wallLayeringDetail.trim());
@@ -2217,7 +2343,7 @@ function buildGISegmentSentence(segName, s, cat){
           return lo.label.toLowerCase() + (t && t.trim() ? ' (' + t.trim() + ' mm)' : '');
         });
         var patternWord = s.layerPattern === 'focal' ? 'Focal' : 'Diffuse';
-        parts.push(patternWord + ' thickening of the ' + layerFrags.join(', ') + (selectedLayers.length > 1 ? ' layers.' : ' layer.'));
+        parts.push(patternWord + ' thickening of the ' + joinList(layerFrags) + (selectedLayers.length > 1 ? ' layers.' : ' layer.'));
       }
       if (s.layerDescription && s.layerDescription.trim()) {
         parts.push(s.layerDescription.trim());
@@ -2935,7 +3061,7 @@ function renderLymphSection(o, s, section){
       thField.className = 'field';
       thField.style.marginTop = '6px';
       var thLabel = document.createElement('label');
-      thLabel.textContent = 'Thickness (mm)';
+      thLabel.textContent = 'Short-axis diameter (mm)';
       thField.appendChild(thLabel);
       var thInput = document.createElement('input');
       thInput.type = 'text';
@@ -3723,6 +3849,7 @@ function renderOrgans(){
     if (!organIncluded[o.id]) return;
     var s = state[o.id];
     var section = document.createElement('div');
+    section.id = 'organ-' + o.id;
     section.style.marginBottom = '22px';
     section.style.paddingBottom = '18px';
     section.style.borderBottom = '1px solid var(--border-softer)';
@@ -4251,6 +4378,7 @@ function renderOrgans(){
   });
 
   document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
+  renderOrganNav();
 }
 
 var DOG_URINARY_REFERENCE = [
@@ -5253,16 +5381,7 @@ function finishOrganSection(o, section, body){
 
 document.getElementById('allNormalBtn').addEventListener('click', function(){
   ORGANS.forEach(function(o){
-    state[o.id] = o.custom === 'bladder' ? freshBladderState() :
-      (o.custom === 'gi' ? freshGIState() :
-      (o.custom === 'lymph' ? freshLymphState() :
-      (o.custom === 'ascites' ? freshAscitesState() :
-      (o.custom === 'vasculature' ? freshVasculatureState() :
-      (o.custom === 'genital' ? freshGenitalState() :
-      (o.custom === 'gallbladder' ? freshGallbladderState() :
-      (o.custom === 'biliary' ? freshBiliaryState() :
-      (o.custom === 'ureters' ? freshUretersState() :
-      (o.sides ? freshSidedOrganState() : freshOrganState())))))))));
+    state[o.id] = freshStateFor(o);
   });
   renderOrgans();
 });
@@ -5579,7 +5698,10 @@ document.getElementById('organScannedCollapseBtn').addEventListener('click', fun
   var collapsed = body.style.display === 'none';
   body.style.display = collapsed ? '' : 'none';
   btn.classList.toggle('collapsed', !collapsed);
+  updateStickyOffset();
 });
+
+window.addEventListener('resize', updateStickyOffset);
 
 document.getElementById('organDeselectAllBtn').addEventListener('click', function(){
   ORGANS.forEach(function(o){ organIncluded[o.id] = false; });
