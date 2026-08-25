@@ -4,96 +4,188 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Abdominal Ultrasound Report</title>
+<script>
+(function(){
+  var saved = localStorage.getItem('theme');
+  var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  :root {
+    --bg: #f8f5f0;
+    --surface: #fff;
+    --surface-alt: #f1ece2;
+    --text: #2a2318;
+    --text-muted: #7d7161;
+    --text-faint: #948870;
+    --border: #ddd1bd;
+    --border-soft: #ece4d5;
+    --border-softer: #f0e8d9;
+    --accent: #3a72e0;
+    --accent-bg: #e6eefc;
+    --accent-text: #1f52c4;
+    --danger: #c0392b;
+    --danger-bg: #fdecea;
+    --danger-border: #f6cdc9;
+    --organ-text-bg: #fff6df;
+    --organ-text-border: #f0dba3;
+    --organ-text-label: #8a6d1a;
+    --modal-overlay: rgba(0,0,0,0.35);
+    --warning-bg: #ede6d8;
+    --warning-border: #ddd0b8;
+    --action-bg: #3a72e0;
+    --action-text: #fff;
+    --shadow: rgba(60,45,20,0.25);
+    --login-bg: linear-gradient(135deg, #fdf6ea 0%, #f8f5f0 45%, #f4efe3 100%);
+    --login-input-bg: #f6f1e6;
+    --login-submit-bg: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --shadow-sm: 0 1px 2px rgba(60,45,20,0.05), 0 1px 3px rgba(60,45,20,0.07);
+    --shadow-md: 0 4px 12px rgba(60,45,20,0.07), 0 2px 4px rgba(60,45,20,0.05);
+  }
+  [data-theme="dark"] {
+    --bg: #1b1611;
+    --surface: #241d16;
+    --surface-alt: #2e251a;
+    --text: #f2e8d8;
+    --text-muted: #b3a086;
+    --text-faint: #8a7a63;
+    --border: #4a3c2a;
+    --border-soft: #3d3122;
+    --border-softer: #362b1e;
+    --accent: #e6a83c;
+    --accent-bg: #3d2f16;
+    --accent-text: #f3c877;
+    --danger: #e0685a;
+    --danger-bg: #3a2323;
+    --danger-border: #5a3230;
+    --organ-text-bg: #33280f;
+    --organ-text-border: #4d3c17;
+    --organ-text-label: #e0b84f;
+    --modal-overlay: rgba(0,0,0,0.6);
+    --warning-bg: #332a1c;
+    --warning-border: #4d3c17;
+    --action-bg: #e6a83c;
+    --action-text: #241a08;
+    --shadow: rgba(0,0,0,0.5);
+    --login-bg: linear-gradient(135deg, #221a10 0%, #1b1611 45%, #1e1811 100%);
+    --login-input-bg: #2e251a;
+    --login-submit-bg: linear-gradient(135deg, #3a2f1f, #241d16);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.35);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
+  }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: #f4f4f2;
-    color: #1a1a1a;
+    background: var(--bg);
+    color: var(--text);
     margin: 0;
     padding: 24px;
   }
   .wrap { max-width: 1280px; margin: 0 auto; }
-  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
-  .subtitle { color: #666; font-size: 13px; margin: 0 0 20px; }
+  h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 4px; }
+  .subtitle { color: var(--text-muted); font-size: 13.5px; margin: 0 0 20px; }
   .card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 20px 22px;
     margin-bottom: 16px;
   }
   .card h2 {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.005em;
     margin: 0 0 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-soft);
   }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-  label { display: block; font-size: 12px; color: #666; margin-bottom: 3px; }
+  label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 3px; }
   input[type=text], input[type=date], textarea, select {
     width: 100%;
-    font-size: 14px;
+    font-size: 14.5px;
     padding: 7px 9px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
     font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
   }
   textarea { resize: vertical; }
   #f_history, #f_recs { overflow-y: hidden; }
   .field { margin-bottom: 10px; }
   .attr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  .attr-label { font-size: 12px; color: #666; min-width: 100px; }
+  .attr-label { font-size: 13px; color: var(--text-muted); min-width: 100px; }
   .chip-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip {
-    font-size: 12px;
+    font-size: 13px;
     padding: 5px 11px;
-    border: 1px solid #ccc;
+    border: 1px solid transparent;
     border-radius: 20px;
-    background: #fff;
+    background: var(--surface-alt);
     cursor: pointer;
-    color: #333;
+    color: var(--text);
+    transition: background 0.12s ease, color 0.12s ease;
   }
-  .chip.active { background: #eaf1ff; border-color: #3a7bd5; color: #1a4d99; font-weight: 600; }
-  .organ-text-label { font-size: 11px; font-weight: 600; color: #8a6d1a; margin-top: 10px; margin-bottom: 3px; }
-  .organ-text { margin-top: 0; resize: none; overflow-y: hidden; background: #fffce6; border-color: #e8d9a0; }
+  .chip.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+  .organ-text-label { font-size: 11.5px; font-weight: 600; color: var(--organ-text-label); margin-top: 10px; margin-bottom: 3px; }
+  .organ-text { margin-top: 0; resize: none; overflow-y: hidden; background: var(--organ-text-bg); border-color: var(--organ-text-border); color: var(--text); }
   .gi-category { margin-bottom: 10px; }
   .gi-category-btn {
     width: 100%;
     text-align: left;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
     padding: 8px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    background: #f7f7f6;
+    background: var(--surface-alt);
+    color: var(--text);
     cursor: pointer;
   }
-  .gi-segment { margin: 8px 0 8px 14px; padding: 8px 0 8px 12px; border-left: 2px solid #eee; }
-  .gi-segment-name { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 6px; }
+  .gi-segment { margin: 8px 0 8px 14px; padding: 8px 0 8px 12px; border-left: 2px solid var(--border-soft); }
+  .gi-segment-name { font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
   .toolbar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   button.action {
-    font-size: 13px;
+    font-size: 13.5px;
     padding: 9px 16px;
-    border-radius: 6px;
-    border: 1px solid #333;
-    background: #1a1a1a;
-    color: #fff;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--action-bg);
+    color: var(--action-text);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
+  button.action:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  button.action:active { transform: translateY(0); }
   button.action.secondary {
-    background: #fff;
-    color: #1a1a1a;
-    border: 1px solid #ccc;
+    background: var(--surface-alt);
+    color: var(--text);
+    border: none;
+    box-shadow: none;
   }
+  button.action.secondary:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
   .organ-normal-btn {
     font-size: 11px;
     padding: 3px 9px;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    color: var(--text);
     cursor: pointer;
     margin-left: 8px;
   }
@@ -108,22 +200,22 @@
     font-size: 12px;
     line-height: 1;
     border-radius: 50%;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-    color: #555;
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    color: var(--text-muted);
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
   }
-  .organ-collapse-btn:hover { background: #eee; }
+  .organ-collapse-btn:hover { background: var(--border-soft); }
   .organ-collapse-btn.collapsed { transform: rotate(-90deg); }
   .organ-header { display: flex; align-items: center; }
   .organ-with-reference {
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    margin-bottom: 18px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-softer);
   }
   .organ-with-reference > .organ-main-col {
     flex: 1 1 0;
@@ -135,37 +227,37 @@
   .reference-panel {
     flex: 0 0 340px;
     max-width: 340px;
-    background: #fbfbfa;
-    border: 1px solid #e2e2de;
-    border-radius: 10px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
     padding: 14px 16px;
   }
   .reference-panel h4 {
     margin: 0 0 10px;
     font-size: 13px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text);
     padding-bottom: 8px;
-    border-bottom: 1px solid #e2e2de;
+    border-bottom: 1px solid var(--border-soft);
   }
   .reference-panel .ref-entry { margin-bottom: 12px; }
   .reference-panel .ref-entry:last-child { margin-bottom: 0; }
   .reference-panel .ref-param {
     font-weight: 700;
     font-size: 12px;
-    color: #1a1a1a;
+    color: var(--text);
     margin-bottom: 4px;
   }
   .reference-panel .ref-value-list {
     margin: 0;
     padding-left: 16px;
     font-size: 12px;
-    color: #444;
+    color: var(--text-muted);
     line-height: 1.55;
   }
-  .reference-panel .ref-value-list li strong { color: #1a4d99; }
+  .reference-panel .ref-value-list li strong { color: var(--accent-text); }
   .reference-panel .ref-entry-attention {
-    border: 1px solid #c0392b;
+    border: 1px solid var(--danger);
     border-radius: 8px;
     padding: 8px 10px;
   }
@@ -178,31 +270,31 @@
     padding: 7px 0;
     font-size: 12px;
     font-weight: 700;
-    color: #1a1a1a;
-    background: #fff;
-    border: 1px solid #999;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--text-faint);
     border-radius: 6px;
     cursor: pointer;
     margin-top: 4px;
     font-family: inherit;
   }
-  .gi-ref-detail-btn:hover { background: #f4f4f2; }
+  .gi-ref-detail-btn:hover { background: var(--bg); }
   .ref-modal-section {
     margin-bottom: 14px;
     padding-bottom: 14px;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid var(--text);
   }
   .ref-modal-section h4 {
     margin: 0 0 6px;
     font-size: 12px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text);
   }
   .ref-modal-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
-    color: #444;
+    color: var(--text-muted);
   }
   .ref-modal-table th, .ref-modal-table td {
     padding: 4px 6px 4px 0;
@@ -214,10 +306,10 @@
   }
   .ref-modal-table th {
     font-weight: 700;
-    color: #1a1a1a;
-    border-bottom: 1px solid #e2e2de;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-soft);
   }
-  .ref-modal-table .num-hl { color: #1a4d99; font-weight: 700; }
+  .ref-modal-table .num-hl { color: var(--accent-text); font-weight: 700; }
   .ref-modal-table.prose th, .ref-modal-table.prose td {
     text-align: left;
     padding: 6px 6px 6px 0;
@@ -227,18 +319,18 @@
     width: 22%;
     vertical-align: top;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text);
   }
   .ref-modal-list {
     margin: 0;
     padding-left: 16px;
     font-size: 12px;
-    color: #444;
+    color: var(--text-muted);
     line-height: 1.6;
   }
-  .ref-modal-list li strong { color: #1a4d99; }
+  .ref-modal-list li strong { color: var(--accent-text); }
   .ref-modal-attention {
-    border: 1px solid #c0392b;
+    border: 1px solid var(--danger);
     border-radius: 8px;
     padding: 10px 12px;
   }
@@ -246,27 +338,27 @@
     margin: 0 0 6px;
     font-size: 12px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text);
   }
   .sticky-controls {
     position: sticky;
     top: 0;
     z-index: 500;
-    background: #f4f4f2;
+    background: var(--bg);
     padding-top: 6px;
     padding-bottom: 14px;
     max-height: 55vh;
     overflow-y: auto;
-    box-shadow: 0 6px 10px -8px rgba(0,0,0,0.25);
+    box-shadow: 0 6px 10px -8px var(--shadow);
   }
   .warning-banner {
     font-size: 15px;
-    font-weight: 700;
-    color: #c0392b;
-    background: #e6e6e6;
-    border: 1px solid #d0d0d0;
-    border-left: 4px solid #c0392b;
-    border-radius: 6px;
+    font-weight: 600;
+    color: var(--danger);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius-sm);
     padding: 10px 14px;
     margin: 0 0 20px;
     line-height: 1.6;
@@ -294,29 +386,29 @@
   .feedback-fab:hover { background: #000; padding-right: 10px; }
 
   .admin-fb-btn {
-    color: #c0392b !important;
-    background: #e6e6e6 !important;
-    border: 1px solid #c9c9c9 !important;
+    color: var(--danger) !important;
+    background: var(--warning-bg) !important;
+    border: 1px solid var(--warning-border) !important;
     font-weight: 700 !important;
   }
-  .admin-fb-btn:hover { background: #dcdcdc !important; }
+  .admin-fb-btn:hover { background: var(--border-soft) !important; }
 
   .fb-delete-btn {
     padding: 4px 10px;
-    border: 1px solid #e0b4b0;
+    border: 1px solid var(--danger-border);
     border-radius: 6px;
-    background: #fdecea;
-    color: #c0392b;
+    background: var(--danger-bg);
+    color: var(--danger);
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
   }
-  .fb-delete-btn:hover { background: #f9dcd8; }
+  .fb-delete-btn:hover { filter: brightness(0.95); }
 
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.35);
+    background: var(--modal-overlay);
     display: none;
     align-items: center;
     justify-content: center;
@@ -324,14 +416,15 @@
   }
   .modal-overlay.open { display: flex; }
   .modal-box {
-    background: #fff;
-    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius-md);
     padding: 22px;
     width: 560px;
     max-width: 94vw;
     max-height: 84vh;
     overflow-y: auto;
-    box-shadow: 0 6px 30px rgba(0,0,0,0.20);
+    box-shadow: var(--shadow-md);
   }
   .modal-head {
     display: flex;
@@ -346,26 +439,26 @@
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
-    color: #888;
+    color: var(--text-faint);
   }
   .fb-row { margin-bottom: 12px; }
   .fb-row > label {
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #666;
+    color: var(--text-muted);
     margin-bottom: 5px;
   }
-  #fbMessage { width: 100%; font-size: 14px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
-  .fb-note { font-size: 11.5px; color: #999; margin: 4px 0 0; line-height: 1.5; }
+  #fbMessage { width: 100%; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; background: var(--surface); color: var(--text); }
+  .fb-note { font-size: 11.5px; color: var(--text-faint); margin: 4px 0 0; line-height: 1.5; }
   .fb-status-msg { font-size: 13px; margin: 10px 0 0; }
 
   .fb-item {
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 10px;
-    background: #fcfcfc;
+    background: var(--surface-alt);
   }
   .fb-item-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
   .fb-badge {
@@ -373,19 +466,23 @@
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
-    background: #eee;
-    color: #444;
+    background: var(--border-soft);
+    color: var(--text-muted);
   }
-  .fb-badge.sev-high { background: #fdecea; color: #c0392b; }
+  .fb-badge.sev-high { background: var(--danger-bg); color: var(--danger); }
   .fb-badge.sev-mid { background: #fff4e0; color: #a86612; }
   .fb-badge.sev-low { background: #eef3ea; color: #4d6b3a; }
-  .fb-badge.cat-bug { background: #fdecea; color: #c0392b; }
-  .fb-badge.cat-feature { background: #eaf1ff; color: #1a4d99; }
+  .fb-badge.cat-bug { background: var(--danger-bg); color: var(--danger); }
+  .fb-badge.cat-feature { background: var(--accent-bg); color: var(--accent-text); }
   .fb-badge.st-new { background: #ffe9e9; color: #b03030; }
   .fb-badge.st-doing { background: #fff4e0; color: #a86612; }
   .fb-badge.st-done { background: #e7f4e9; color: #2e7d3a; }
+  [data-theme="dark"] .fb-badge.sev-mid, [data-theme="dark"] .fb-badge.st-doing { background: #4a3a1a; color: #e0a84a; }
+  [data-theme="dark"] .fb-badge.sev-low { background: #2a3a24; color: #8fc47a; }
+  [data-theme="dark"] .fb-badge.st-new { background: #4a2a2a; color: #e08a8a; }
+  [data-theme="dark"] .fb-badge.st-done { background: #2a3a2a; color: #7ac48a; }
   .fb-item-msg { font-size: 13.5px; white-space: pre-wrap; margin: 0 0 8px; line-height: 1.55; }
-  .fb-item-meta { font-size: 11.5px; color: #888; line-height: 1.6; margin-bottom: 8px; }
+  .fb-item-meta { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; margin-bottom: 8px; }
   .fb-item-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .fb-item-actions select { width: auto; font-size: 12px; padding: 4px 8px; }
   .fb-item-actions input {
@@ -393,9 +490,11 @@
     min-width: 160px;
     font-size: 12px;
     padding: 5px 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 6px;
     font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
   }
   .fb-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 
@@ -404,15 +503,15 @@
   #loginScreen {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, #eaf2fb 0%, #f4f7fb 45%, #eef6f2 100%);
+    background: var(--login-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
   }
   .login-box {
-    background: #fff;
-    border: 1px solid #eee;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
     border-radius: 18px;
     padding: 36px 30px 30px;
     width: 360px;
@@ -437,14 +536,14 @@
     font-size: 24px;
     box-shadow: 0 4px 12px rgba(20, 20, 40, 0.08);
   }
-  .login-title { font-size: 17px; font-weight: 700; margin: 0 0 4px; color: #1a1a1a; white-space: nowrap; }
-  .login-subtitle { margin: 0 0 22px; color: #8a93a3; font-size: 13px; }
+  .login-title { font-size: 17px; font-weight: 700; margin: 0 0 4px; color: var(--text); white-space: nowrap; }
+  .login-subtitle { margin: 0 0 22px; color: var(--text-faint); font-size: 13px; }
   .login-field { margin-bottom: 12px; text-align: left; }
   .login-field-label {
     display: block;
     font-size: 11.5px;
     font-weight: 600;
-    color: #8a93a3;
+    color: var(--text-faint);
     letter-spacing: 0.02em;
     text-transform: uppercase;
     margin-bottom: 5px;
@@ -462,9 +561,10 @@
   .login-box input {
     width: 100%;
     padding: 11px 12px 11px 34px;
-    border: 1px solid #dde3ea;
+    border: 1px solid var(--border);
     border-radius: 9px;
-    background: #f8fafc;
+    background: var(--login-input-bg);
+    color: var(--text);
     font-size: 14px;
     font-family: inherit;
     box-sizing: border-box;
@@ -472,8 +572,8 @@
   }
   .login-box input:focus {
     outline: none;
-    border-color: #3a7bd5;
-    background: #fff;
+    border-color: var(--accent);
+    background: var(--surface);
     box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15);
   }
   .login-submit-btn {
@@ -482,7 +582,7 @@
     padding: 11px;
     border: none;
     border-radius: 9px;
-    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+    background: var(--login-submit-bg);
     color: #ff2d87;
     font-size: 14px;
     font-weight: 700;
@@ -492,9 +592,9 @@
   .login-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
   .login-submit-btn:active { transform: translateY(0); opacity: 0.9; }
   .login-error {
-    color: #c0392b;
-    background: #fdecea;
-    border: 1px solid #f6cdc9;
+    color: var(--danger);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
     border-radius: 8px;
     font-size: 12.5px;
     margin: 14px 0 0;
@@ -507,13 +607,13 @@
     justify-content: flex-end;
     gap: 10px;
     font-size: 13px;
-    color: #555;
+    color: var(--text-muted);
     margin-bottom: 6px;
   }
   #cloudModal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.35);
+    background: var(--modal-overlay);
     display: none;
     align-items: center;
     justify-content: center;
@@ -521,27 +621,29 @@
   }
   #cloudModal.open { display: flex; }
   .cloud-modal-box {
-    background: #fff;
-    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius-md);
     padding: 20px;
     width: 520px;
     max-height: 70vh;
     overflow-y: auto;
-    box-shadow: 0 2px 14px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-md);
   }
   .cloud-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 4px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-soft);
     font-size: 13px;
   }
   .cloud-row button {
     padding: 4px 10px;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    color: var(--text);
     cursor: pointer;
     font-size: 12px;
   }
@@ -602,11 +704,11 @@
       <button id="cloudModalClose" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
     </div>
     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:10px;">
-      <input type="text" id="cloudSearchCase" placeholder="Case number" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
-      <input type="text" id="cloudSearchPatient" placeholder="Patient name" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
-      <input type="text" id="cloudSearchVet" placeholder="Scanning veterinarian" style="padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;">
+      <input type="text" id="cloudSearchCase" placeholder="Case number" style="padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; box-sizing:border-box; background:var(--surface); color:var(--text);">
+      <input type="text" id="cloudSearchPatient" placeholder="Patient name" style="padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; box-sizing:border-box; background:var(--surface); color:var(--text);">
+      <input type="text" id="cloudSearchVet" placeholder="Scanning veterinarian" style="padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; box-sizing:border-box; background:var(--surface); color:var(--text);">
     </div>
-    <div id="cloudList" style="font-size:13px; color:#777;">Loading...</div>
+    <div id="cloudList" style="font-size:13px; color:var(--text-muted);">Loading...</div>
   </div>
 </div>
 
@@ -625,7 +727,7 @@
       <div class="chip-wrap" id="fbSeverityChips"></div>
     </div>
     <div class="fb-row">
-      <label>問題描述 <span style="color:#c0392b;">*</span></label>
+      <label>問題描述 <span style="color:var(--danger);">*</span></label>
       <textarea id="fbMessage" rows="5" placeholder="請描述遇到的狀況，或想要的功能。越具體越好，例如：在哪個臟器、按了什麼、預期是什麼、實際是什麼。"></textarea>
       <p class="fb-note">送出時會自動附上你的帳號、時間、目前的病例號與瀏覽器資訊，不需要另外填寫。</p>
     </div>
@@ -641,7 +743,7 @@
       <button class="modal-close" id="adminFeedbackClose">&times;</button>
     </div>
     <div class="fb-filter-bar" id="fbFilterChips"></div>
-    <div id="adminFeedbackList" style="font-size:13px; color:#777;">Loading...</div>
+    <div id="adminFeedbackList" style="font-size:13px; color:var(--text-muted);">Loading...</div>
   </div>
 </div>
 
@@ -682,6 +784,7 @@
 <div class="wrap no-print">
   <div class="topbar">
     <span id="userEmailLabel"></span>
+    <button class="action secondary" id="themeToggleBtn" style="padding:4px 10px; font-size:12px;">🌙 Dark mode</button>
     <button class="action secondary admin-fb-btn" id="adminFeedbackBtn" style="padding:4px 10px; font-size:12px; display:none;">Feedback 管理</button>
     <button class="action secondary" id="signOutBtn" style="padding:4px 10px; font-size:12px;">Sign out</button>
   </div>
@@ -701,7 +804,7 @@
     </div>
 
     <div class="card" style="margin-bottom:0;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid #eee;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border-soft);">
         <h2 style="margin:0; padding:0; border:none;">Organs scanned</h2>
         <div style="display:flex; align-items:center; gap:8px;">
           <button type="button" class="action secondary" id="organDeselectAllBtn" style="padding:5px 12px; font-size:13px;">Deselect all</button>
@@ -838,6 +941,17 @@ document.getElementById('loginPassword').addEventListener('keydown', function(e)
 
 document.getElementById('signOutBtn').addEventListener('click', function(){
   sbClient.auth.signOut();
+});
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggleBtn').textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+}
+applyTheme(document.documentElement.getAttribute('data-theme'));
+document.getElementById('themeToggleBtn').addEventListener('click', function(){
+  var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', next);
+  applyTheme(next);
 });
 
 function autoResize(el){
@@ -3168,7 +3282,7 @@ function renderGenitalSection(o, s, section){
   if (!sexCategory) {
     var sexHint = document.createElement('div');
     sexHint.style.fontSize = '12px';
-    sexHint.style.color = '#888';
+    sexHint.style.color = 'var(--text-muted)';
     sexHint.style.marginBottom = '8px';
     sexHint.textContent = 'Select the patient\'s sex in Patient information above to show Prostate/Testicles or Ovaries/Uterus fields.';
     section.appendChild(sexHint);
@@ -3609,9 +3723,9 @@ function renderOrgans(){
     if (!organIncluded[o.id]) return;
     var s = state[o.id];
     var section = document.createElement('div');
-    section.style.marginBottom = '18px';
-    section.style.paddingBottom = '14px';
-    section.style.borderBottom = '1px solid #f0f0f0';
+    section.style.marginBottom = '22px';
+    section.style.paddingBottom = '18px';
+    section.style.borderBottom = '1px solid var(--border-softer)';
 
     var header = document.createElement('div');
     header.className = 'organ-header';
@@ -4573,7 +4687,7 @@ function buildDogGIReferenceHTML(){
     +   '</table>'
     + '</div>'
     + '<div style="margin-bottom:14px;">'
-    +   '<h4 style="margin:0 0 6px;font-size:12px;font-weight:700;color:#1a1a1a;">Colon</h4>'
+    +   '<h4 style="margin:0 0 6px;font-size:12px;font-weight:700;color:var(--text);">Colon</h4>'
     +   '<ul class="ref-modal-list"><li>All layers <strong>~0.3–0.5 mm</strong>, contributing roughly equally</li></ul>'
     + '</div>'
     + '<div class="ref-modal-attention">'
@@ -4611,7 +4725,7 @@ function buildCatGIReferenceHTML(){
     +   '</table>'
     + '</div>'
     + '<div style="margin-bottom:14px;">'
-    +   '<h4 style="margin:0 0 6px;font-size:12px;font-weight:700;color:#1a1a1a;">Peristalsis</h4>'
+    +   '<h4 style="margin:0 0 6px;font-size:12px;font-weight:700;color:var(--text);">Peristalsis</h4>'
     +   '<ul class="ref-modal-list">'
     +     '<li>Stomach: <strong>4–5 contractions/min</strong> (regular gastric peristalsis, Penninck et al. 1990)</li>'
     +     '<li>Small intestine: <strong>3–5 movements/min</strong> (Husnik &amp; Gaschen, 2021)</li>'
@@ -4937,14 +5051,14 @@ function buildDogLymphModalHTML(){
     + '</div>'
     + '<div class="ref-modal-section" style="border-bottom:none;">'
     +   '<h4>Lymph node distribution (mesenteric/portal + iliac/lumbar aortic)</h4>'
-    +   '<img src="' + LYMPH_DIAGRAM_IMG + '" style="width:100%;height:auto;border:1px solid #e2e2de;border-radius:4px;display:block;margin-top:6px;" alt="Abdominal lymph node distribution diagram">'
+    +   '<img src="' + LYMPH_DIAGRAM_IMG + '" style="width:100%;height:auto;border:1px solid var(--border-soft);border-radius:4px;display:block;margin-top:6px;" alt="Abdominal lymph node distribution diagram">'
     + '</div>';
 }
 
 function buildCatLymphModalHTML(){
   return ''
     + '<div class="ref-modal-section" style="padding-bottom:6px;border-bottom:none;">'
-    +   '<div style="font-size:11px;color:#888;">Schreurs et al. 2008, n=10 healthy adult cats</div>'
+    +   '<div style="font-size:11px;color:var(--text-muted);">Schreurs et al. 2008, n=10 healthy adult cats</div>'
     + '</div>'
     + '<div class="ref-modal-section">'
     +   '<table class="ref-modal-table prose">'
@@ -4956,7 +5070,7 @@ function buildCatLymphModalHTML(){
     + '</div>'
     + '<div class="ref-modal-section" style="border-bottom:none;">'
     +   '<h4>Lymph node distribution (mesenteric/portal + iliac/lumbar aortic)</h4>'
-    +   '<img src="' + LYMPH_DIAGRAM_IMG + '" style="width:100%;height:auto;border:1px solid #e2e2de;border-radius:4px;display:block;margin-top:6px;" alt="Abdominal lymph node distribution diagram">'
+    +   '<img src="' + LYMPH_DIAGRAM_IMG + '" style="width:100%;height:auto;border:1px solid var(--border-soft);border-radius:4px;display:block;margin-top:6px;" alt="Abdominal lymph node distribution diagram">'
     + '</div>';
 }
 
@@ -5533,7 +5647,7 @@ document.getElementById('fbSubmitBtn').addEventListener('click', function(){
 
   if (!text) {
     msgEl.textContent = '請先填寫問題描述再送出。';
-    msgEl.style.color = '#c0392b';
+    msgEl.style.color = 'var(--danger)';
     msgEl.style.display = 'block';
     document.getElementById('fbMessage').focus();
     return;
@@ -5563,7 +5677,7 @@ document.getElementById('fbSubmitBtn').addEventListener('click', function(){
     btn.textContent = originalLabel;
     if (result.error) {
       msgEl.textContent = '送出失敗：' + result.error.message;
-      msgEl.style.color = '#c0392b';
+      msgEl.style.color = 'var(--danger)';
       msgEl.style.display = 'block';
       return;
     }
