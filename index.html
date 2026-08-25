@@ -856,6 +856,7 @@
       <button class="action secondary" id="loadCloudBtn">Load from cloud</button>
       <button class="action secondary" id="allNormalBtn">Set all organs to normal</button>
       <button class="action secondary" id="resetBtn">Clear all</button>
+      <span id="draftStatus" class="no-print" style="align-self:center; font-size:12px; color:var(--text-faint);"></span>
     </div>
 
     <div class="card" style="margin-bottom:0;">
@@ -2152,9 +2153,15 @@ function draftStorageKey(){
   return currentUserEmail ? ('draft:' + currentUserEmail) : null;
 }
 
+function setDraftStatus(text){
+  var el = document.getElementById('draftStatus');
+  if (el) el.textContent = text || '';
+}
+
 function clearDraft(){
   var key = draftStorageKey();
   if (key) localStorage.removeItem(key);
+  setDraftStatus('');
 }
 
 function saveDraftNow(){
@@ -2162,6 +2169,7 @@ function saveDraftNow(){
   if (!key) return;
   if (!hasSubstantiveContentNow()) {
     localStorage.removeItem(key);
+    setDraftStatus('');
     return;
   }
   var payload = {
@@ -2174,14 +2182,17 @@ function saveDraftNow(){
   };
   try {
     localStorage.setItem(key, JSON.stringify(payload));
+    setDraftStatus('Draft saved · ' + new Date(payload.savedAt).toLocaleTimeString());
   } catch (e) {
     // localStorage full/unavailable — draft saving is a best-effort safety net, fail silently
+    setDraftStatus('');
   }
 }
 
 var draftSaveTimer = null;
 function scheduleDraftSave(){
   if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  if (hasSubstantiveContentNow()) setDraftStatus('Saving draft…');
   draftSaveTimer = setTimeout(saveDraftNow, 1500);
 }
 
@@ -2223,7 +2234,7 @@ function checkForDraftOnLoad(){
     document.getElementById('draftBanner').style.display = 'none';
   };
   document.getElementById('draftDiscardBtn').onclick = function(){
-    localStorage.removeItem(key);
+    clearDraft();
     document.getElementById('draftBanner').style.display = 'none';
   };
 }
