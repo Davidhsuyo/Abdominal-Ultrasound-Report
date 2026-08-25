@@ -42,6 +42,7 @@
     font-family: inherit;
   }
   textarea { resize: vertical; }
+  #f_history, #f_recs { overflow-y: hidden; }
   .field { margin-bottom: 10px; }
   .attr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
   .attr-label { font-size: 12px; color: #666; min-width: 100px; }
@@ -554,6 +555,7 @@
     .print-organ { margin-bottom: 10px; }
     .print-organ .name { font-weight: 600; font-size: 13px; }
     .print-organ .text { font-size: 13px; margin: 2px 0 0; white-space: pre-line; }
+    #printHistory, #printRecs { white-space: pre-line; }
     .print-header-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; font-size: 13px; margin-bottom: 14px; }
     .print-section-title { font-size: 14px; font-weight: 600; margin: 18px 0 6px; border-bottom: 1px solid #999; padding-bottom: 3px; }
     .screen-only-in-print { display: none; }
@@ -791,6 +793,8 @@ function showApp(session){
   // content is actually visible and laid out, so boxes display at full height
   // immediately instead of only after the user clicks into them.
   document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
+  autoResize(document.getElementById('f_history'));
+  autoResize(document.getElementById('f_recs'));
 }
 
 function showLogin(){
@@ -886,6 +890,11 @@ var KIDNEY_CYST_OPTS = [
   { v: 'none', t: 'None' },
   { v: 'single', t: 'Single' },
   { v: 'multiple', t: 'Multiple' }
+];
+var KIDNEY_CMJ_OPTS = [
+  { v: 'distinct', t: 'Distinct', frag: 'Distinct corticomedullary junction' },
+  { v: 'decreased', t: 'Decreased', frag: 'Decreased corticomedullary junction' },
+  { v: 'lost', t: 'Lost', frag: 'Loss of corticomedullary junction' }
 ];
 
 var HOMOHETERO_ECHO_OPTIONS = [
@@ -1019,7 +1028,8 @@ var LYMPH_ECHO_OPTS = [
   { v: 'homogeneous', t: 'Homogeneous' },
   { v: 'heterogeneous', t: 'Heterogeneous' },
   { v: 'hyperechoic', t: 'Hyperechoic' },
-  { v: 'hypoechoic_anechoic', t: 'Hypoechoic to anechoic' }
+  { v: 'hypoechoic_anechoic', t: 'Hypoechoic to anechoic' },
+  { v: 'mixed', t: 'Mixed' }
 ];
 var LYMPH_NODE_LIST = [
   { key: 'hepatic', label: 'Hepatic' },
@@ -1028,8 +1038,7 @@ var LYMPH_NODE_LIST = [
   { key: 'jejunal', label: 'Jejunal' },
   { key: 'colic', label: 'Colic' },
   { key: 'ileocecal', label: 'Ileocecal' },
-  { key: 'medial_iliac_left', label: 'Left medial iliac (MILN)' },
-  { key: 'medial_iliac_right', label: 'Right medial iliac (MILN)' }
+  { key: 'medial_iliac', label: 'Medial iliac (MILN)', hasSide: true }
 ];
 
 var ASCITES_AMOUNT_OPTS = [
@@ -1202,7 +1211,8 @@ var ORGANS = [
       { key: 'pelvis', label: 'Renal pelvis width', unit: 'cm' }
     ],
     calculiOptions: KIDNEY_CALCULI_OPTS,
-    cystOptions: KIDNEY_CYST_OPTS
+    cystOptions: KIDNEY_CYST_OPTS,
+    cmjOptions: KIDNEY_CMJ_OPTS
   },
   { id: 'ureters', name: 'Ureters', custom: 'ureters' },
   { id: 'bladder', name: 'Urinary bladder', extraLabel: 'Additional notes', custom: 'bladder' },
@@ -1229,7 +1239,7 @@ function freshOrganState(){
   return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', extra: '', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal', calculi: 'none', calculiSize: '', calculiLocation: [], calculiShadowing: '', cyst: 'none', cystSize: '' };
 }
 function freshSideState(){
-  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal', calculi: 'none', calculiSize: '', calculiLocation: [], calculiShadowing: '', cyst: 'none', cystSize: '' };
+  return { size: 'normal', echo: 'normal', margins: 'smooth', dist: 'none', measurements: {}, lesionDetail: '', regions: [], periFat: 'normal', calculi: 'none', calculiSize: '', calculiLocation: [], calculiShadowing: '', cyst: 'none', cystSize: '', cmj: 'distinct' };
 }
 function freshSidedOrganState(){
   return { activeSide: 'left', left: freshSideState(), right: freshSideState(), extra: '' };
@@ -1396,17 +1406,17 @@ function freshBladderNAState(){
 }
 
 function freshLymphNodeEntryState(){
-  return { echo: '', thickness: '', detail: '' };
+  return { echo: [], thickness: '', detail: '', side: '' };
 }
 function freshLymphState(){
   var nodes = {};
   LYMPH_NODE_LIST.forEach(function(n){ nodes[n.key] = freshLymphNodeEntryState(); });
-  return { size: 'normal', selectedNodes: [], nodes: nodes };
+  return { size: 'normal', selectedNodes: [], nodes: nodes, extra: '' };
 }
 function freshLymphNAState(){
   var nodes = {};
   LYMPH_NODE_LIST.forEach(function(n){ nodes[n.key] = freshLymphNodeEntryState(); });
-  return { size: 'na', selectedNodes: [], nodes: nodes };
+  return { size: 'na', selectedNodes: [], nodes: nodes, extra: '' };
 }
 
 function freshAscitesState(){
@@ -1551,7 +1561,9 @@ function buildBladderSentence(s){
 
 function buildLymphSentence(s){
   if (s.size === 'normal') {
-    return 'Unremarkable lymphatic system. LN size are generally normal.';
+    var normalText = 'Unremarkable lymphatic system. LN size are generally normal.';
+    if (s.extra && s.extra.trim()) normalText += ' ' + s.extra.trim();
+    return normalText;
   }
 
   if (s.size === 'enlarged') {
@@ -1561,14 +1573,22 @@ function buildLymphSentence(s){
     LYMPH_NODE_LIST.forEach(function(n){
       if (selectedNodes.indexOf(n.key) === -1) return;
       var nodeState = nodes[n.key] || {};
-      var lead = [n.label + ' lymph node is enlarged'];
-      var echoOpt = LYMPH_ECHO_OPTS.filter(function(o){ return o.v === nodeState.echo; })[0];
-      if (echoOpt) lead.push(echoOpt.t.toLowerCase() + ' in echogenicity');
-      if (nodeState.thickness && nodeState.thickness.trim()) lead.push('measuring up to ' + nodeState.thickness.trim() + ' mm in thickness');
-      var line = lead.join(', ') + '.';
+      var sideOpt = n.hasSide ? GENITAL_SIDE_OPTS.filter(function(o){ return o.v === nodeState.side; })[0] : null;
+      var isBilateral = !!(sideOpt && sideOpt.v === 'bilateral');
+      var sidePrefix = sideOpt ? sideOpt.t + ' ' : '';
+      var lead = [sidePrefix + n.label + ' lymph node' + (isBilateral ? 's are' : ' is') + ' enlarged'];
+      var echoLabels = attrValuesOf(nodeState, 'echo').map(function(v){
+        var eo = LYMPH_ECHO_OPTS.filter(function(x){ return x.v === v; })[0];
+        return eo ? eo.t.toLowerCase() : '';
+      }).filter(Boolean);
+      if (echoLabels.length) lead.push(joinList(echoLabels) + ' in echogenicity');
+      var line = lead.join(', ');
+      if (nodeState.thickness && nodeState.thickness.trim()) line += ' (' + nodeState.thickness.trim() + ' mm in thickness)';
+      line += '.';
       if (nodeState.detail && nodeState.detail.trim()) line += ' ' + nodeState.detail.trim();
       lines.push(line);
     });
+    if (s.extra && s.extra.trim()) lines.push(s.extra.trim());
     return lines.join('\n');
   }
 
@@ -1942,6 +1962,11 @@ function buildSentence(organName, s, measurementsDefs, echoOptions, o){
     return mo ? (mo.adj || '') : '';
   }).filter(Boolean);
   if (marginAdjs.length) parts.push('Margins are ' + joinList(marginAdjs) + '.');
+
+  if (o && o.cmjOptions) {
+    var cmjOpt = o.cmjOptions.filter(function(x){ return x.v === s.cmj; })[0];
+    if (cmjOpt && cmjOpt.frag) parts.push(cmjOpt.frag + '.');
+  }
 
   if (distOpt && distOpt.frag) parts.push(distOpt.frag);
   if ((s.dist === 'focal' || s.dist === 'diffuse') && s.lesionDetail && s.lesionDetail.trim()) {
@@ -2710,9 +2735,47 @@ function renderLymphSection(o, s, section){
   // Defensive guards for backward compatibility with older saved reports.
   if (!state[o.id].selectedNodes) state[o.id].selectedNodes = [];
   if (!state[o.id].nodes) state[o.id].nodes = {};
+  if (state[o.id].extra === undefined) state[o.id].extra = '';
   LYMPH_NODE_LIST.forEach(function(n){
     if (!state[o.id].nodes[n.key]) state[o.id].nodes[n.key] = freshLymphNodeEntryState();
   });
+
+  // Backward compatibility: reports saved before Left/Right MILN were merged
+  // into a single entry still carry separate 'medial_iliac_left' / 'medial_iliac_right'
+  // nodes. Fold them into the merged 'medial_iliac' node so nothing is lost.
+  var legacyMilnSides = { medial_iliac_left: 'left', medial_iliac_right: 'right' };
+  var legacyMilnKeys = Object.keys(legacyMilnSides).filter(function(k){
+    return state[o.id].selectedNodes.indexOf(k) !== -1;
+  });
+  if (legacyMilnKeys.length) {
+    var mergedMiln = state[o.id].nodes['medial_iliac'] || freshLymphNodeEntryState();
+    if (legacyMilnKeys.length === 2) {
+      var leftMiln = state[o.id].nodes['medial_iliac_left'] || {};
+      var rightMiln = state[o.id].nodes['medial_iliac_right'] || {};
+      mergedMiln.side = 'bilateral';
+      mergedMiln.echo = attrValuesOf(leftMiln, 'echo').concat(attrValuesOf(rightMiln, 'echo')).filter(function(v, i, arr){ return arr.indexOf(v) === i; });
+      var milnThicknessParts = [];
+      if (leftMiln.thickness && leftMiln.thickness.trim()) milnThicknessParts.push('L ' + leftMiln.thickness.trim());
+      if (rightMiln.thickness && rightMiln.thickness.trim()) milnThicknessParts.push('R ' + rightMiln.thickness.trim());
+      mergedMiln.thickness = milnThicknessParts.length === 1 ? milnThicknessParts[0].replace(/^[LR] /, '') : '';
+      var milnDetailParts = [];
+      if (milnThicknessParts.length > 1) milnDetailParts.push('Thickness: ' + milnThicknessParts.join(', ') + ' mm.');
+      if (leftMiln.detail && leftMiln.detail.trim()) milnDetailParts.push('Left: ' + leftMiln.detail.trim());
+      if (rightMiln.detail && rightMiln.detail.trim()) milnDetailParts.push('Right: ' + rightMiln.detail.trim());
+      if (milnDetailParts.length) mergedMiln.detail = (milnDetailParts.join(' ') + (mergedMiln.detail ? ' ' + mergedMiln.detail : '')).trim();
+    } else {
+      var legacyMilnKey = legacyMilnKeys[0];
+      var legacyMilnState = state[o.id].nodes[legacyMilnKey] || {};
+      mergedMiln.side = legacyMilnSides[legacyMilnKey];
+      var legacyMilnEcho = attrValuesOf(legacyMilnState, 'echo');
+      mergedMiln.echo = legacyMilnEcho.length ? legacyMilnEcho : mergedMiln.echo;
+      mergedMiln.thickness = legacyMilnState.thickness || mergedMiln.thickness;
+      mergedMiln.detail = legacyMilnState.detail || mergedMiln.detail;
+    }
+    state[o.id].nodes['medial_iliac'] = mergedMiln;
+    state[o.id].selectedNodes = state[o.id].selectedNodes.filter(function(k){ return legacyMilnSides[k] === undefined; });
+    if (state[o.id].selectedNodes.indexOf('medial_iliac') === -1) state[o.id].selectedNodes.push('medial_iliac');
+  }
 
   chipRow('Size', LYMPH_SIZE_OPTS, function(){ return s.size; }, function(v){ state[o.id].size = v; });
 
@@ -2743,7 +2806,16 @@ function renderLymphSection(o, s, section){
       nodeCard.appendChild(nodeTitle);
       section.appendChild(nodeCard);
 
-      chipRow('Echogenicity', LYMPH_ECHO_OPTS, function(){ return nodeState.echo; }, function(v){ state[o.id].nodes[n.key].echo = v; });
+      if (n.hasSide) {
+        chipRow('Side (optional)', GENITAL_SIDE_OPTS, function(){ return nodeState.side; }, function(v){
+          state[o.id].nodes[n.key].side = v;
+        });
+      }
+
+      multiChipRow('Echogenicity', LYMPH_ECHO_OPTS,
+        function(){ return attrValuesOf(nodeState, 'echo'); },
+        function(v){ state[o.id].nodes[n.key].echo = toggleMultiValue(attrValuesOf(state[o.id].nodes[n.key], 'echo'), v); }
+      );
 
       var thField = document.createElement('div');
       thField.className = 'field';
@@ -2786,6 +2858,26 @@ function renderLymphSection(o, s, section){
       section.appendChild(dtField);
     });
   }
+
+  var extraField = document.createElement('div');
+  extraField.className = 'field';
+  extraField.style.marginTop = '6px';
+  var extraLabel = document.createElement('label');
+  extraLabel.textContent = 'Additional comment';
+  extraField.appendChild(extraLabel);
+  var extraInput = document.createElement('input');
+  extraInput.type = 'text';
+  extraInput.placeholder = 'e.g. Obvious LN, etc.';
+  extraInput.value = s.extra || '';
+  extraInput.addEventListener('input', function(){
+    state[o.id].extra = extraInput.value;
+    if (!s.textDirty) {
+      textArea.value = buildLymphSentence(state[o.id]);
+      autoResize(textArea);
+    }
+  });
+  extraField.appendChild(extraInput);
+  section.appendChild(extraField);
 
   var textAreaLabel = document.createElement('div');
   textAreaLabel.className = 'organ-text-label';
@@ -3686,7 +3778,7 @@ function renderOrgans(){
       body.appendChild(regionRow);
     }
 
-    ['size','echo','margins','dist'].forEach(function(attrKey){
+    function renderAttrRow(attrKey){
       var def = ATTR_DEFS[attrKey];
       var row = document.createElement('div');
       row.className = 'attr-row';
@@ -3746,7 +3838,37 @@ function renderOrgans(){
         sdField.appendChild(sdInput);
         body.appendChild(sdField);
       }
-    });
+    }
+
+    ['size','echo','margins'].forEach(renderAttrRow);
+
+    if (o.cmjOptions) {
+      var cmjRow = document.createElement('div');
+      cmjRow.className = 'attr-row';
+      var cmjLabel = document.createElement('span');
+      cmjLabel.className = 'attr-label';
+      cmjLabel.textContent = 'Corticomedullary junction';
+      cmjRow.appendChild(cmjLabel);
+      var cmjChipWrap = document.createElement('div');
+      cmjChipWrap.className = 'chip-wrap';
+      o.cmjOptions.forEach(function(opt){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (activeState.cmj === opt.v ? ' active' : '');
+        chip.textContent = opt.t;
+        chip.addEventListener('click', function(){
+          var target = o.sides ? state[o.id][state[o.id].activeSide] : state[o.id];
+          target.cmj = opt.v;
+          if (state[o.id]) state[o.id].textDirty = false;
+          renderOrgans();
+        });
+        cmjChipWrap.appendChild(chip);
+      });
+      cmjRow.appendChild(cmjChipWrap);
+      body.appendChild(cmjRow);
+    }
+
+    ['dist'].forEach(renderAttrRow);
 
     if (o.calculiOptions) {
       var calcRow = document.createElement('div');
@@ -5035,6 +5157,8 @@ document.getElementById('resetBtn').addEventListener('click', function(){
   if (!confirm('Clear all fields?')) return;
   document.querySelectorAll('.card input[type=text], .card input[type=date], .card textarea').forEach(function(el){ el.value = ''; });
   document.querySelectorAll('.card select').forEach(function(el){ el.value = ''; });
+  autoResize(document.getElementById('f_history'));
+  autoResize(document.getElementById('f_recs'));
   ORGANS.forEach(function(o){
     organIncluded[o.id] = true;
     if (o.custom === 'bladder') {
@@ -5057,8 +5181,8 @@ document.getElementById('resetBtn').addEventListener('click', function(){
       state[o.id] = freshUretersNAState();
     } else if (o.sides) {
       state[o.id] = { activeSide: 'left',
-        left: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na' },
-        right: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na' },
+        left: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na', cmj: 'na' },
+        right: { size: 'na', echo: 'na', margins: 'na', dist: 'na', measurements: {}, regions: [], periFat: 'na', cmj: 'na' },
         extra: '' };
     } else {
       state[o.id] = { size: 'na', echo: 'na', margins: 'na', dist: 'na', extra: '', measurements: {}, regions: [], periFat: 'na' };
@@ -5106,6 +5230,9 @@ document.getElementById('printBtn').addEventListener('click', function(){
 function buildReportText(){
   var lines = [];
   lines.push('Abdominal Ultrasound Report');
+  lines.push('');
+
+  lines.push('Patient status: ' + (document.getElementById('f_status').value.trim() || '—'));
   lines.push('');
 
   lines.push('Findings');
@@ -5228,6 +5355,8 @@ function loadReportIntoForm(report){
     document.getElementById('f_date').value = data.patientFields.exam_date || '';
     document.getElementById('f_history').value = data.patientFields.history || '';
     document.getElementById('f_recs').value = data.patientFields.recs || '';
+    autoResize(document.getElementById('f_history'));
+    autoResize(document.getElementById('f_recs'));
   }
 
   if (data.organIncluded) {
@@ -5320,6 +5449,14 @@ document.getElementById('f_species').addEventListener('change', function(){
 
 document.getElementById('f_sex').addEventListener('change', function(){
   renderOrgans();
+});
+
+document.getElementById('f_history').addEventListener('input', function(){
+  autoResize(this);
+});
+
+document.getElementById('f_recs').addEventListener('input', function(){
+  autoResize(this);
 });
 
 document.getElementById('organScannedCollapseBtn').addEventListener('click', function(){
