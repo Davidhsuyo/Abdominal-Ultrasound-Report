@@ -90,7 +90,7 @@
   .app-shell { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; gap: 24px; }
   .wrap { flex: 1 1 auto; min-width: 0; }
   .organ-nav {
-    flex: 0 0 190px;
+    flex: 0 0 208px;
     position: sticky;
     top: var(--sticky-offset, 90px);
     max-height: calc(100vh - 24px);
@@ -104,11 +104,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 9px;
+    padding: 7px 9px;
     border-radius: 7px;
     text-decoration: none;
     color: var(--text-muted);
-    font-size: 12.5px;
+    font-size: 14px;
     cursor: pointer;
   }
   .organ-nav-item:hover { background: var(--surface-alt); color: var(--text); }
@@ -156,6 +156,22 @@
     box-shadow: 0 0 0 3px var(--accent-bg);
   }
   textarea { resize: vertical; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation: none; }
+  }
   #f_history, #f_recs { overflow-y: hidden; }
   .field { margin-bottom: 10px; }
   .attr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -824,6 +840,12 @@
   <h1>Abdominal Ultrasound Report</h1>
   <p class="subtitle">Click the buttons in each organ section to auto-generate a description. Edit the text freely afterward. Use "Preview &amp; print" when finished.</p>
 
+  <div id="draftBanner" class="no-print" style="display:none; align-items:center; gap:12px; flex-wrap:wrap; background:var(--accent-bg); color:var(--accent-text); border:1px solid var(--accent); border-radius:var(--radius-sm); padding:10px 14px; margin:0 0 16px; font-size:13.5px;">
+    <span id="draftBannerText" style="flex:1; min-width:200px;"></span>
+    <button type="button" class="action" id="draftRestoreBtn" style="padding:6px 14px; font-size:12.5px;">Restore draft</button>
+    <button type="button" class="action secondary" id="draftDiscardBtn" style="padding:6px 14px; font-size:12.5px;">Discard</button>
+  </div>
+
   <div class="sticky-controls">
     <p class="warning-banner">同一個敘述框的內容，請先把上面按鈕都選擇完，且數值都輸入完，再手動修改文字。<br>先修改一部分文字，再回去點按鈕，會強制跳回原本的選項</p>
 
@@ -933,6 +955,7 @@ function showApp(session){
   autoResize(document.getElementById('f_history'));
   autoResize(document.getElementById('f_recs'));
   updateStickyOffset();
+  checkForDraftOnLoad();
 }
 
 function showLogin(){
@@ -2057,8 +2080,10 @@ function buildTextFor(o, st){
 
 function isOrganModified(o){
   var current = state[o.id].textDirty ? state[o.id].customText : buildTextFor(o, state[o.id]);
+  current = (current || '').trim();
+  if (!current) return false; // blank/N-A state (e.g. after "Clear all") — nothing recorded, not a finding
   var normalText = buildTextFor(o, freshStateFor(o));
-  return (current || '').trim() !== (normalText || '').trim();
+  return current !== (normalText || '').trim();
 }
 
 var organNavEl = document.getElementById('organNav');
@@ -2109,6 +2134,98 @@ function renderOrganNav(){
 function updateStickyOffset(){
   var sc = document.querySelector('.sticky-controls');
   if (sc) document.documentElement.style.setProperty('--sticky-offset', (sc.offsetHeight + 12) + 'px');
+}
+
+function hasPatientFieldContent(pf){
+  if (!pf) return false;
+  return ['case_number', 'scanning_vet', 'client_name', 'patient_name', 'species', 'breed', 'sex', 'age', 'patient_status', 'exam_date', 'history'].some(function(k){
+    return pf[k] && String(pf[k]).trim();
+  });
+}
+
+function hasSubstantiveContentNow(){
+  return ORGANS.some(function(o){ return organIncluded[o.id] && isOrganModified(o); })
+    || hasPatientFieldContent(getPatientFields());
+}
+
+function draftStorageKey(){
+  return currentUserEmail ? ('draft:' + currentUserEmail) : null;
+}
+
+function clearDraft(){
+  var key = draftStorageKey();
+  if (key) localStorage.removeItem(key);
+}
+
+function saveDraftNow(){
+  var key = draftStorageKey();
+  if (!key) return;
+  if (!hasSubstantiveContentNow()) {
+    localStorage.removeItem(key);
+    return;
+  }
+  var payload = {
+    savedAt: new Date().toISOString(),
+    data: {
+      patientFields: getPatientFields(),
+      state: state,
+      organIncluded: organIncluded
+    }
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (e) {
+    // localStorage full/unavailable — draft saving is a best-effort safety net, fail silently
+  }
+}
+
+var draftSaveTimer = null;
+function scheduleDraftSave(){
+  if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(saveDraftNow, 1500);
+}
+
+function checkForDraftOnLoad(){
+  var key = draftStorageKey();
+  if (!key) return;
+  var raw = localStorage.getItem(key);
+  if (!raw) return;
+  var draft;
+  try { draft = JSON.parse(raw); } catch (e) { localStorage.removeItem(key); return; }
+  var draftData = draft && draft.data;
+  if (!draftData) { localStorage.removeItem(key); return; }
+
+  var savedState = state, savedOrganIncluded = organIncluded;
+  var substantive = false;
+  try {
+    state = draftData.state || {};
+    organIncluded = draftData.organIncluded || {};
+    substantive = ORGANS.some(function(o){ return organIncluded[o.id] && isOrganModified(o); })
+      || hasPatientFieldContent(draftData.patientFields);
+  } finally {
+    state = savedState;
+    organIncluded = savedOrganIncluded;
+  }
+
+  if (!substantive) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  var label = (draftData.patientFields && draftData.patientFields.patient_name && draftData.patientFields.patient_name.trim())
+    ? draftData.patientFields.patient_name.trim() : '(no patient name)';
+  var when = draft.savedAt ? new Date(draft.savedAt).toLocaleString() : '';
+  document.getElementById('draftBannerText').textContent = 'Unsaved draft found — ' + label + (when ? ' (saved ' + when + ')' : '');
+  document.getElementById('draftBanner').style.display = 'flex';
+
+  document.getElementById('draftRestoreBtn').onclick = function(){
+    loadReportIntoForm({ report_data: JSON.stringify(draftData) });
+    document.getElementById('draftBanner').style.display = 'none';
+  };
+  document.getElementById('draftDiscardBtn').onclick = function(){
+    localStorage.removeItem(key);
+    document.getElementById('draftBanner').style.display = 'none';
+  };
 }
 
 function attrValuesOf(stateObj, key){
@@ -4379,6 +4496,7 @@ function renderOrgans(){
 
   document.querySelectorAll('#organs textarea').forEach(function(ta){ autoResize(ta); });
   renderOrganNav();
+  scheduleDraftSave();
 }
 
 var DOG_URINARY_REFERENCE = [
@@ -5388,6 +5506,7 @@ document.getElementById('allNormalBtn').addEventListener('click', function(){
 
 document.getElementById('resetBtn').addEventListener('click', function(){
   if (!confirm('Clear all fields?')) return;
+  clearDraft();
   document.querySelectorAll('.card input[type=text], .card input[type=date], .card textarea').forEach(function(el){ el.value = ''; });
   document.querySelectorAll('.card select').forEach(function(el){ el.value = ''; });
   autoResize(document.getElementById('f_history'));
@@ -5538,8 +5657,10 @@ function getPatientFields(){
 
 document.getElementById('saveCloudBtn').addEventListener('click', function(){
   var btn = document.getElementById('saveCloudBtn');
+  if (btn.disabled) return;
   var originalLabel = btn.textContent;
-  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving...';
 
   var patientFields = getPatientFields();
 
@@ -5561,11 +5682,13 @@ document.getElementById('saveCloudBtn').addEventListener('click', function(){
   };
 
   sbClient.from('reports').insert([payload]).then(function(result){
+    btn.disabled = false;
     if (result.error) {
       btn.textContent = 'Save failed';
       console.error(result.error);
     } else {
       btn.textContent = 'Saved!';
+      clearDraft();
     }
     setTimeout(function(){ btn.textContent = originalLabel; }, 1500);
   });
@@ -5638,7 +5761,7 @@ function renderCloudList(reports){
 }
 
 function fetchCloudReports(){
-  document.getElementById('cloudList').textContent = 'Loading...';
+  document.getElementById('cloudList').innerHTML = '<span class="spinner"></span>Loading...';
   var caseTerm = document.getElementById('cloudSearchCase').value.trim();
   var patientTerm = document.getElementById('cloudSearchPatient').value.trim();
   var vetTerm = document.getElementById('cloudSearchVet').value.trim();
@@ -5702,6 +5825,27 @@ document.getElementById('organScannedCollapseBtn').addEventListener('click', fun
 });
 
 window.addEventListener('resize', updateStickyOffset);
+
+document.querySelector('.wrap').addEventListener('input', function(e){
+  if (e.target.matches('input, textarea, select')) scheduleDraftSave();
+});
+document.querySelector('.wrap').addEventListener('change', function(e){
+  if (e.target.matches('select')) scheduleDraftSave();
+});
+
+document.addEventListener('keydown', function(e){
+  var mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  if (document.getElementById('appContent').style.display === 'none') return;
+  var key = e.key.toLowerCase();
+  if (key === 's') {
+    e.preventDefault();
+    document.getElementById('saveCloudBtn').click();
+  } else if (key === 'p') {
+    e.preventDefault();
+    document.getElementById('printBtn').click();
+  }
+});
 
 document.getElementById('organDeselectAllBtn').addEventListener('click', function(){
   ORGANS.forEach(function(o){ organIncluded[o.id] = false; });
