@@ -699,6 +699,31 @@
   }
 
   @media print {
+    /* 列印時強制套用 light mode 的顏色變數，避免 dark mode 螢幕上的淺色文字/暗色背景印出來對比不足、糊糊的 */
+    :root, [data-theme="dark"] {
+      --bg: #f8f5f0;
+      --surface: #fff;
+      --surface-alt: #f1ece2;
+      --text: #2a2318;
+      --text-muted: #7d7161;
+      --text-faint: #948870;
+      --border: #ddd1bd;
+      --border-soft: #ece4d5;
+      --border-softer: #f0e8d9;
+      --accent: #3a72e0;
+      --accent-bg: #e6eefc;
+      --accent-text: #1f52c4;
+      --danger: #c0392b;
+      --danger-bg: #fdecea;
+      --danger-border: #f6cdc9;
+      --organ-text-bg: #fff6df;
+      --organ-text-border: #f0dba3;
+      --organ-text-label: #8a6d1a;
+      --warning-bg: #ede6d8;
+      --warning-border: #ddd0b8;
+      --action-bg: #3a72e0;
+      --action-text: #fff;
+    }
     body { background: #fff; padding: 0; }
     .no-print { display: none !important; }
     .card { border: none; padding: 0; margin: 0; }
